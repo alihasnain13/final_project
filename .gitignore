@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/final_project_490
+final_project_490.so
+final_project_490.dylib
+final_project_490.dll
+final_project_490.a
+final_project_490.lib
+final_project_490-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst

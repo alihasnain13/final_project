@@ -1,0 +1,25 @@
+{
+    "name": "final_project_490",
+    "description": "This is my final project for CPSC 490!",
+    "authors": [
+      "Ali Hasnain"
+    ],
+    "license": "MIT",
+
+    "targetType": "executable",
+
+    "dependencies": {
+        "bindbc-opengl": "~>1.1.1",
+        "bindbc-sdl": "~>1.5.1"
+    },
+    "versions": [
+        "GL_41"
+    ],
+    "stringImportPaths": [
+        "."
+    ],
+    "subConfigurations": {
+      "bindbc-sdl": "dynamic",
+      "bindbc-opengl": "dynamic"
+    }
+}
