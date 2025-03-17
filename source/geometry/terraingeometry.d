@@ -7,14 +7,20 @@ import geometry;
 import core;
 import error;
 
+// toggle tessellation on/off
+shared bool useTessellation = false;
+
+
 /// Geometry stores all of the vertices and/or indices for a 3D object.
 /// Geometry also has the responsibility of setting up the 'attributes'
 class SurfaceTerrain: ISurface{
     GLuint mVBO;
     GLuint mIBO;
+    GLuint mTessIBO; // new IBO for tessellation indices
 
     VertexFormat3F2F[] mVertices;
     GLuint[] mIndices;
+    GLuint[] mTessIndices;  // For tessellation (quad patches).
     size_t mTriangles;
 
     uint mXDimensions;
@@ -39,15 +45,24 @@ class SurfaceTerrain: ISurface{
         glBindVertexArray(mVAO);
         // Call our draw call
 
-        // draw the terrain as a triangle strip
-        for (uint z = 0; z < mZDimensions - 1; z++) {
-
-            // strip uses 2 * mXDimensions indices
-            size_t indexCount = mXDimensions * 2;
-            // calculate the offset into the index buffer
-            size_t offset = z * indexCount * GLuint.sizeof;
-
-            glDrawElements(GL_TRIANGLE_STRIP, cast(int) indexCount, GL_UNSIGNED_INT, cast(void*) offset);
+        if(useTessellation) { // TODO: review this!!
+            // Tessellation mode: use the patch draw call.
+            glPatchParameteri(GL_PATCH_VERTICES, 4);
+            // Bind the tessellation index buffer.
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTessIBO);
+            // The total number of patches is (mXDimensions - 1) * (mZDimensions - 1).
+            int totalPatches = cast(int)((mXDimensions - 1) * (mZDimensions - 1));
+            int totalIndices = totalPatches * 4; // 4 vertices per patch.
+            glDrawElements(GL_PATCHES, totalIndices, GL_UNSIGNED_INT, cast(void*)0);
+        } else {
+            // Standard mode: use the triangle strip draw call.
+            // Bind the original index buffer.
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
+            for (uint z = 0; z < mZDimensions - 1; z++) {
+                size_t indexCount = mXDimensions * 2;
+                size_t offset = z * indexCount * GLuint.sizeof;
+                glDrawElements(GL_TRIANGLE_STRIP, cast(int)indexCount, GL_UNSIGNED_INT, cast(void*)offset);
+            }
         }
 
         glBindVertexArray(0);
@@ -99,29 +114,50 @@ class SurfaceTerrain: ISurface{
             }
         }
 
-        // Vertex Arrays Object (VAO) Setup
+        // Generate tessellation indices for quads.
+        // For each quad in the grid, create a patch with 4 vertices.
+        for(uint z = 0; z < zDim - 1; z++) {
+            for(uint x = 0; x < xDim - 1; x++) {
+                int topLeft = z * xDim + x;
+                int topRight = topLeft + 1;
+                int bottomLeft = (z + 1) * xDim + x;
+                int bottomRight = bottomLeft + 1;
+                // Order: topLeft, topRight, bottomRight, bottomLeft.
+                mTessIndices ~= topLeft;
+                mTessIndices ~= topRight;
+                mTessIndices ~= bottomRight;
+                mTessIndices ~= bottomLeft;
+            }
+        }
+        
+
+        // Setup VAO and VBO (same as before).
         glGenVertexArrays(1, &mVAO);
-        // We bind (i.e. select) to the Vertex Array Object (VAO) that we want to work withn.
         glBindVertexArray(mVAO);
 
-        // Index Buffer Object (IBO)
+        // Setup IBO for standard mode.
         glGenBuffers(1, &mIBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.length* GLuint.sizeof, mIndices.ptr, GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.length * GLuint.sizeof, mIndices.ptr, GL_STATIC_DRAW);
 
-        // Vertex Buffer Object (VBO) creation
+        // Setup VBO.
         glGenBuffers(1, &mVBO);
         glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-        glBufferData(GL_ARRAY_BUFFER, mVertices.length* VertexFormat3F2F.sizeof, mVertices.ptr, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, mVertices.length * VertexFormat3F2F.sizeof, mVertices.ptr, GL_STATIC_DRAW);
 
-        // Function call to setup attributes
+        // Setup vertex attributes.
         SetVertexAttributes!VertexFormat3F2F();
 
-        // Unbind our currently bound Vertex Array Object
         glBindVertexArray(0);
-
-        // Turn off attributes
         DisableVertexAttributes!VertexFormat3F2F();
+
+        // Setup IBO for tessellation mode.
+        glGenBuffers(1, &mTessIBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTessIBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mTessIndices.length * GLuint.sizeof, mTessIndices.ptr, GL_STATIC_DRAW);
+        // Unbind the buffer.
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
     }
 }
 

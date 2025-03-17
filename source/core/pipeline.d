@@ -15,11 +15,22 @@ class Pipeline{
     GLint mProgramObjectID;
 
 
+    // TODO: double check old and new constructor 
+
+    // * OLD CONSTRUCTOR
     /// Constructor to build a graphics pipeline with a vertex shader and fragment shader source file
     this(string pipelineName, string vertexShaderSourceFilename, string fragmentShaderSourceFilename){
         CompilePipeline(pipelineName, vertexShaderSourceFilename, fragmentShaderSourceFilename);
     }
 
+    // * NEW CONSTRUCTOR
+    /// New constructor for a tessellation pipeline: vertex, tessellation control, tessellation evaluation, and fragment shaders.
+    this(string pipelineName, string vertexShaderSourceFilename, 
+         string tessControlShaderSourceFilename, string tessEvalShaderSourceFilename, 
+         string fragmentShaderSourceFilename)
+    {
+        CompilePipelineTess(pipelineName, vertexShaderSourceFilename, tessControlShaderSourceFilename, tessEvalShaderSourceFilename, fragmentShaderSourceFilename);
+    }
 
 
     /// Create a shader and store it in our pipelines map
@@ -93,6 +104,96 @@ class Pipeline{
 
         return mProgramObjectID;
     }
+
+    /// Create a shader pipeline with tessellation shaders.
+    GLuint CompilePipelineTess(string pipelineName, string vertexShaderSourceFilename, 
+                                 string tessControlShaderSourceFilename, string tessEvalShaderSourceFilename, 
+                                 string fragmentShaderSourceFilename){
+        // Local nested function for error checking (same as before)
+        void CheckShaderError(GLuint shaderObject){
+            int result;
+            glGetShaderiv(shaderObject, GL_COMPILE_STATUS, &result);
+            if(result == GL_FALSE){
+                int length;
+                glGetShaderiv(shaderObject, GL_INFO_LOG_LENGTH, &length);
+                GLchar[] errorMessages = new GLchar[length];
+                glGetShaderInfoLog(shaderObject, length, &length, errorMessages.ptr);
+                writeln(errorMessages);
+            }
+        }
+
+        GLuint vertexShader, tessControlShader, tessEvalShader, fragmentShader;
+
+        // Load shader sources
+        string vertexSource       = readText(vertexShaderSourceFilename);
+        writeln("Vertex source: ", vertexShaderSourceFilename);
+        writeln("Tess control length: ", vertexSource.length);
+        string tessControlSource  = readText(tessControlShaderSourceFilename);
+        writeln("Tess control source: ", tessControlShaderSourceFilename);
+        writeln("Tess control length: ", tessControlSource.length);
+        string tessEvalSource     = readText(tessEvalShaderSourceFilename);
+        writeln("Tess eval source: ", tessEvalShaderSourceFilename);
+        writeln("Tess eval length: ", tessEvalSource.length);
+        string fragmentSource     = readText(fragmentShaderSourceFilename);
+        writeln("Fragment source: ", fragmentShaderSourceFilename);
+        writeln("Fragment length: ", fragmentSource.length);
+
+        // Compile vertex shader
+        vertexShader = glCreateShader(GL_VERTEX_SHADER);
+        const char* vSource = vertexSource.ptr;
+        glShaderSource(vertexShader, 1, &vSource, null);
+        glCompileShader(vertexShader);
+        CheckShaderError(vertexShader);
+
+        // Compile tessellation control shader
+        tessControlShader = glCreateShader(GL_TESS_CONTROL_SHADER);
+        const char* tcSource = tessControlSource.ptr;
+        glShaderSource(tessControlShader, 1, &tcSource, null);
+        glCompileShader(tessControlShader);
+        CheckShaderError(tessControlShader);
+
+        // Compile tessellation evaluation shader
+        tessEvalShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
+        const char* teSource = tessEvalSource.ptr;
+        glShaderSource(tessEvalShader, 1, &teSource, null);
+        glCompileShader(tessEvalShader);
+        CheckShaderError(tessEvalShader);
+
+        // Compile fragment shader
+        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        const char* fSource = fragmentSource.ptr;
+        glShaderSource(fragmentShader, 1, &fSource, null);
+        glCompileShader(fragmentShader);
+        CheckShaderError(fragmentShader);
+
+        // Create shader program
+        mProgramObjectID = glCreateProgram();
+        glAttachShader(mProgramObjectID, vertexShader);
+        glAttachShader(mProgramObjectID, tessControlShader);
+        glAttachShader(mProgramObjectID, tessEvalShader);
+        glAttachShader(mProgramObjectID, fragmentShader);
+
+        // Link and validate the program
+        glLinkProgram(mProgramObjectID);
+        glValidateProgram(mProgramObjectID);
+
+        // Clean up: detach and delete individual shaders
+        glDetachShader(mProgramObjectID, vertexShader);
+        glDetachShader(mProgramObjectID, tessControlShader);
+        glDetachShader(mProgramObjectID, tessEvalShader);
+        glDetachShader(mProgramObjectID, fragmentShader);
+        glDeleteShader(vertexShader);
+        glDeleteShader(tessControlShader);
+        glDeleteShader(tessEvalShader);
+        glDeleteShader(fragmentShader);
+
+        mPipelineName = pipelineName;
+        sPipeline[mPipelineName] = mProgramObjectID;
+
+        PrintShaderAttributesAndUniforms(mPipelineName, mProgramObjectID);
+        return mProgramObjectID;
+    }
+
 }
 
 /// Select a pipelie for use. 

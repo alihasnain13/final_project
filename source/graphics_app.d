@@ -68,50 +68,123 @@ struct GraphicsApp{
 				SDL_DestroyWindow(mWindow);
 		}
 
+		// TODO: remove this function later
+
 		/// Handle input
+		// void Input(){
+		// 		// Store an SDL Event
+		// 		SDL_Event event;
+		// 		while(SDL_PollEvent(&event)){
+		// 				if(event.type == SDL_QUIT){
+		// 						writeln("Exit event triggered (probably clicked 'x' at top of the window)");
+		// 						mGameIsRunning= false;
+		// 				}
+		// 				if(event.type == SDL_KEYDOWN){
+		// 						if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
+		// 								writeln("Pressed escape key and now exiting...");
+		// 								mGameIsRunning= false;
+		// 						}else if(event.key.keysym.sym == SDLK_TAB){
+		// 								mRenderWireframe = !mRenderWireframe;
+		// 						}
+		// 						else if(event.key.keysym.sym == SDLK_DOWN){
+		// 								mCamera.MoveBackward();
+		// 						}
+		// 						else if(event.key.keysym.sym == SDLK_UP){
+		// 								mCamera.MoveForward();
+		// 						}
+		// 						else if(event.key.keysym.sym == SDLK_LEFT){
+		// 								mCamera.MoveLeft();
+		// 						}
+		// 						else if(event.key.keysym.sym == SDLK_RIGHT){
+		// 								mCamera.MoveRight();
+		// 						}
+		// 						else if(event.key.keysym.sym == SDLK_a){
+		// 								mCamera.MoveUp();
+		// 						}
+		// 						else if(event.key.keysym.sym == SDLK_z){
+		// 								mCamera.MoveDown();
+		// 						}
+		// 						writeln("Camera Position: ",mCamera.mEyePosition);
+		// 				}
+		// 		}
+
+
+        //         // Retrieve the mouse position
+        //         int mouseX,mouseY;
+        //         SDL_GetMouseState(&mouseX,&mouseY);
+        //         mCamera.MouseLook(mouseX,mouseY);
+		// }
+		/// Handle input
+
 		void Input(){
-				// Store an SDL Event
-				SDL_Event event;
-				while(SDL_PollEvent(&event)){
-						if(event.type == SDL_QUIT){
-								writeln("Exit event triggered (probably clicked 'x' at top of the window)");
-								mGameIsRunning= false;
-						}
-						if(event.type == SDL_KEYDOWN){
-								if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
-										writeln("Pressed escape key and now exiting...");
-										mGameIsRunning= false;
-								}else if(event.key.keysym.sym == SDLK_TAB){
-										mRenderWireframe = !mRenderWireframe;
-								}
-								else if(event.key.keysym.sym == SDLK_DOWN){
-										mCamera.MoveBackward();
-								}
-								else if(event.key.keysym.sym == SDLK_UP){
-										mCamera.MoveForward();
-								}
-								else if(event.key.keysym.sym == SDLK_LEFT){
-										mCamera.MoveLeft();
-								}
-								else if(event.key.keysym.sym == SDLK_RIGHT){
-										mCamera.MoveRight();
-								}
-								else if(event.key.keysym.sym == SDLK_a){
-										mCamera.MoveUp();
-								}
-								else if(event.key.keysym.sym == SDLK_z){
-										mCamera.MoveDown();
-								}
-								writeln("Camera Position: ",mCamera.mEyePosition);
-						}
+			SDL_Event event;
+			while(SDL_PollEvent(&event)){
+				if(event.type == SDL_QUIT){
+					writeln("Exit event triggered (probably clicked 'x' at top of the window)");
+					mGameIsRunning= false;
 				}
+				if(event.type == SDL_KEYDOWN){
+					if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
+						writeln("Pressed escape key and now exiting...");
+						mGameIsRunning= false;
+					}
+					else if(event.key.keysym.sym == SDLK_TAB){
+						mRenderWireframe = !mRenderWireframe;
+					}
+					// Movement keys for the camera...
+					else if(event.key.keysym.sym == SDLK_DOWN){
+						mCamera.MoveBackward();
+					}
+					else if(event.key.keysym.sym == SDLK_UP){
+						mCamera.MoveForward();
+					}
+					else if(event.key.keysym.sym == SDLK_LEFT){
+						mCamera.MoveLeft();
+					}
+					else if(event.key.keysym.sym == SDLK_RIGHT){
+						mCamera.MoveRight();
+					}
+					else if(event.key.keysym.sym == SDLK_a){
+						mCamera.MoveUp();
+					}
+					else if(event.key.keysym.sym == SDLK_z){
+						mCamera.MoveDown();
+					}
+					// Toggle tessellation mode when the 'T' key is pressed.
+					else if(event.key.keysym.sym == SDLK_t){
+						// Toggle the tessellation flag.
+						// Note: 'useTessellation' is declared as shared in terraingeometry.d,
+						// so ensure it's imported or referenced correctly.
+						useTessellation = !useTessellation;
+						writeln("Tessellation mode: ", useTessellation);
+						
+						// Find the terrain node in the scene.
+						auto terrainNode = cast(MeshNode)mSceneTree.FindNode("terrain");
+						if(useTessellation) {
+							// Switch to the tessellation material.
+							terrainNode.mMaterial = new TerrainTessellationMaterial();
+						} else {
+							// Switch back to the standard multitexture material.
+							terrainNode.mMaterial = new MultiTextureMaterial("multiTexturePipeline",
+								"./assets/sand.ppm",
+								"./assets/grass.ppm",
+								"./assets/dirt.ppm",
+								"./assets/snow.ppm");
+							// Re-add the uniforms if needed.
+							terrainNode.mMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+							terrainNode.mMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+							terrainNode.mMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+						}
+					}
+					writeln("Camera Position: ", mCamera.mEyePosition);
+				}
+			}
 
-
-                // Retrieve the mouse position
-                int mouseX,mouseY;
-                SDL_GetMouseState(&mouseX,&mouseY);
-                mCamera.MouseLook(mouseX,mouseY);
+			int mouseX, mouseY;
+			SDL_GetMouseState(&mouseX, &mouseY);
+			mCamera.MouseLook(mouseX, mouseY);
 		}
+
 
 		/// A helper function to setup a scene.
 		/// NOTE: In the future this can use a configuration file to otherwise make our graphics applications
