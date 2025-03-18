@@ -13,7 +13,6 @@ class TerrainTessellationMaterial : IMaterial {
     float tessOuter = 4.0f;
 
     this() {
-
         // Create the tessellation-enabled pipeline instance.
         new Pipeline("terrainTessellation",
             "./pipelines/tessellation/terrain.vert",
@@ -21,26 +20,36 @@ class TerrainTessellationMaterial : IMaterial {
             "./pipelines/tessellation/tess_eval.glsl",
             "./pipelines/tessellation/terrain.frag");
 
-        writefln("TerrainTessellationMaterial: created pipeline 'terrainTessellation'");
+        writeln("TerrainTessellationMaterial: created pipeline 'terrainTessellation'");
 
         // Initialize the base material with our new pipeline name.
         super("terrainTessellation");
+        writeln("TerrainTessellationMaterial: initialized base material");
 
-        writeln ("TerrainTessellationMaterial: initialized base material");
+        auto tessID = Pipeline.sPipeline["terrainTessellation"];
+        writeln("Tessellation pipeline ID: ", tessID);
 
-        // Add transformation uniforms first (in the order expected by your shader).
-        // AddUniform(new Uniform("uModel", "mat4", null));
+        foreach (key, value; Pipeline.sPipeline) {
+            writeln(key, " -> ", value);
+        }
 
-        writeln ("TerrainTessellationMaterial: added transformation uniforms");
 
+        // Activate the tessellation pipeline to ensure uniform locations are available.
+        PipelineUse(mPipelineName);
+        {
+            GLint prog;
+            glGetIntegerv(GL_CURRENT_PROGRAM, &prog);
+            writeln("Active program before adding uniforms: ", prog);
+        }
+
+        // Add transformation uniforms.
         AddUniform(new Uniform("uProjection", "mat4", null));
         AddUniform(new Uniform("uView", "mat4", null));
         // Then add tessellation-specific uniforms.
         AddUniform(new Uniform("uTessInner", tessInner));
         AddUniform(new Uniform("uTessOuter", tessOuter));
 
-
-        writeln ("TerrainTessellationMaterial: added uniforms");
+        writeln("TerrainTessellationMaterial: added uniforms");
     }
 
     override void Update() {
@@ -50,8 +59,7 @@ class TerrainTessellationMaterial : IMaterial {
         // Update tessellation level uniforms.
         mUniformMap["uTessInner"].Set(tessInner);
         mUniformMap["uTessOuter"].Set(tessOuter);
-
-        // Transformation uniforms should be updated externally (e.g. by your scene or camera code)
-        // or you can update them here if you have the pointers.
+        // Transformation uniforms should be updated externally (by the renderer)
+        // or here if you have valid pointers.
     }
 }

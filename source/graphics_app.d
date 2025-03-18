@@ -162,8 +162,10 @@ struct GraphicsApp{
 						auto terrainNode = cast(MeshNode)mSceneTree.FindNode("terrain");
 						if(useTessellation) {
 							// Switch to the tessellation material.
+							writeln("Switching to tessellation material...");
 							terrainNode.mMaterial = new TerrainTessellationMaterial();
 						} else {
+							writeln("Switching back to standard multitexture material...");
 							// Switch back to the standard multitexture material.
 							terrainNode.mMaterial = new MultiTextureMaterial("multiTexturePipeline",
 								"./assets/sand.ppm",

@@ -23,20 +23,22 @@ class MeshNode : ISceneNode{
     }
 
     override void Update(){
-        // Update the material (bind the pipeline, etc.)
+        /// Update the material
         mMaterial.Update();
 
-        // Update the model matrix uniform if it exists.
+        // Only update "uModel" if it exists.
         if("uModel" in mMaterial.mUniformMap) {
             mMaterial.mUniformMap["uModel"].Set(mModelMatrix.DataPtr());
         }
 
-        // Update all uniform values before the draw call.
-        foreach(u; mMaterial.mUniformMap) {
+        // Update all of the uniform values
+        // This will happen prior to the draw call
+        foreach(u ; mMaterial.mUniformMap){
             u.Transfer();
         }
 
-        // Render the mesh.
+        /// Render the Mesh
+        // Draw our arrays
         mGeometry.Render();
     }
 
