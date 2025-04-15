@@ -7,300 +7,212 @@ import platform;
 
 import bindbc.sdl;
 import bindbc.opengl;
+import std.math;
 
-/// The main graphics application.
-struct GraphicsApp{
-		bool mGameIsRunning=true;
-		bool mRenderWireframe = false;
-		SDL_GLContext mContext;
-		SDL_Window* mWindow;
+// Import your light marker (cube) surface.
 
-		// Scene
-		SceneTree mSceneTree;
-		// Camera
-		Camera mCamera;
-		// Renderer
-		Renderer mRenderer;
+struct GraphicsApp {
+    bool mGameIsRunning = true;
+    bool mRenderWireframe = false;
+    SDL_GLContext mContext;
+    SDL_Window* mWindow;
 
-		/// Setup OpenGL and any libraries
-		this(int major_ogl_version, int minor_ogl_version){
-
-				// Setup SDL OpenGL Version
-				SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version );
-				SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, minor_ogl_version );
-				SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
-				// We want to request a double buffer for smooth updating.
-				SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-				SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-				// Create an application window using OpenGL that supports SDL
-				mWindow = SDL_CreateWindow( "dlang - OpenGL 4+ Graphics Framework",
-								SDL_WINDOWPOS_UNDEFINED,
-								SDL_WINDOWPOS_UNDEFINED,
-								640,
-								480,
-								SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
-
-				// Create the OpenGL context and associate it with our window
-				mContext = SDL_GL_CreateContext(mWindow);
-
-				// Load OpenGL Function calls
-				auto retVal = LoadOpenGLLib();
-
-				// Check OpenGL version
-				GetOpenGLVersionInfo();
-
-				// Create a renderer
-				mRenderer = new Renderer(mWindow,640,480);
-
-				// Create a camera
-				mCamera = new Camera();
-
-				// Create (or load) a Scene Tree
-				mSceneTree = new SceneTree("root");
-		}
-
-		/// Destructor
-		~this(){
-				// Destroy our context
-				SDL_GL_DeleteContext(mContext);
-				// Destroy our window
-				SDL_DestroyWindow(mWindow);
-		}
-
-		// TODO: remove this function later
-
-		/// Handle input
-		// void Input(){
-		// 		// Store an SDL Event
-		// 		SDL_Event event;
-		// 		while(SDL_PollEvent(&event)){
-		// 				if(event.type == SDL_QUIT){
-		// 						writeln("Exit event triggered (probably clicked 'x' at top of the window)");
-		// 						mGameIsRunning= false;
-		// 				}
-		// 				if(event.type == SDL_KEYDOWN){
-		// 						if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
-		// 								writeln("Pressed escape key and now exiting...");
-		// 								mGameIsRunning= false;
-		// 						}else if(event.key.keysym.sym == SDLK_TAB){
-		// 								mRenderWireframe = !mRenderWireframe;
-		// 						}
-		// 						else if(event.key.keysym.sym == SDLK_DOWN){
-		// 								mCamera.MoveBackward();
-		// 						}
-		// 						else if(event.key.keysym.sym == SDLK_UP){
-		// 								mCamera.MoveForward();
-		// 						}
-		// 						else if(event.key.keysym.sym == SDLK_LEFT){
-		// 								mCamera.MoveLeft();
-		// 						}
-		// 						else if(event.key.keysym.sym == SDLK_RIGHT){
-		// 								mCamera.MoveRight();
-		// 						}
-		// 						else if(event.key.keysym.sym == SDLK_a){
-		// 								mCamera.MoveUp();
-		// 						}
-		// 						else if(event.key.keysym.sym == SDLK_z){
-		// 								mCamera.MoveDown();
-		// 						}
-		// 						writeln("Camera Position: ",mCamera.mEyePosition);
-		// 				}
-		// 		}
+    // Scene, Camera, and Renderer.
+    SceneTree mSceneTree;
+    Camera mCamera;
+    Renderer mRenderer;
+    
+    // Persistent light and material properties.
+    vec3 mLightPos;
+    vec3 mLightColor;
+    vec3 mMaterialAmbient;
+    vec3 mMaterialDiffuse;
+    vec3 mMaterialSpecular;
+    float mShininess;
+    
+    // New: Persistent object color.
+    vec3 mObjectColor = vec3(1.0f, 1.0f, 1.0f);
 
 
-        //         // Retrieve the mouse position
-        //         int mouseX,mouseY;
-        //         SDL_GetMouseState(&mouseX,&mouseY);
-        //         mCamera.MouseLook(mouseX,mouseY);
-		// }
-		/// Handle input
+    /// Constructor: Setup OpenGL and other libraries.
+    this(int major_ogl_version, int minor_ogl_version) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor_ogl_version);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-		void Input(){
-			SDL_Event event;
-			while(SDL_PollEvent(&event)){
-				if(event.type == SDL_QUIT){
-					writeln("Exit event triggered (probably clicked 'x' at top of the window)");
-					mGameIsRunning= false;
-				}
-				if(event.type == SDL_KEYDOWN){
-					if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
-						writeln("Pressed escape key and now exiting...");
-						mGameIsRunning= false;
-					}
-					else if(event.key.keysym.sym == SDLK_TAB){
-						mRenderWireframe = !mRenderWireframe;
-					}
-					// Movement keys for the camera...
-					else if(event.key.keysym.sym == SDLK_DOWN){
-						mCamera.MoveBackward();
-					}
-					else if(event.key.keysym.sym == SDLK_UP){
-						mCamera.MoveForward();
-					}
-					else if(event.key.keysym.sym == SDLK_LEFT){
-						mCamera.MoveLeft();
-					}
-					else if(event.key.keysym.sym == SDLK_RIGHT){
-						mCamera.MoveRight();
-					}
-					else if(event.key.keysym.sym == SDLK_a){
-						mCamera.MoveUp();
-					}
-					else if(event.key.keysym.sym == SDLK_z){
-						mCamera.MoveDown();
-					}
-					// Toggle tessellation mode when the 'T' key is pressed.
-					else if(event.key.keysym.sym == SDLK_t){
-						// Toggle the tessellation flag.
-						// Note: 'useTessellation' is declared as shared in terraingeometry.d,
-						// so ensure it's imported or referenced correctly.
-						useTessellation = !useTessellation;
-						writeln("Tessellation mode: ", useTessellation);
-						
-						// Find the terrain node in the scene.
-						auto terrainNode = cast(MeshNode)mSceneTree.FindNode("terrain");
-						if(useTessellation) {
-							// Switch to the tessellation material.
-							writeln("Switching to tessellation material...");
-							terrainNode.mMaterial = new TerrainTessellationMaterial();
-						} else {
-							writeln("Switching back to standard multitexture material...");
-							// Switch back to the standard multitexture material.
-							terrainNode.mMaterial = new MultiTextureMaterial("multiTexturePipeline",
-								"./assets/sand.ppm",
-								"./assets/grass.ppm",
-								"./assets/dirt.ppm",
-								"./assets/snow.ppm");
-							// Re-add the uniforms if needed.
-							terrainNode.mMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-							terrainNode.mMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-							terrainNode.mMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-						}
-					}
-					writeln("Camera Position: ", mCamera.mEyePosition);
-				}
-			}
+        mWindow = SDL_CreateWindow("dlang - OpenGL 4+ Graphics Framework",
+            SDL_WINDOWPOS_UNDEFINED,
+            SDL_WINDOWPOS_UNDEFINED,
+            640, 480,
+            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
-			int mouseX, mouseY;
-			SDL_GetMouseState(&mouseX, &mouseY);
-			mCamera.MouseLook(mouseX, mouseY);
-		}
+        mContext = SDL_GL_CreateContext(mWindow);
+        auto retVal = LoadOpenGLLib();
+        GetOpenGLVersionInfo();
+
+        mRenderer = new Renderer(mWindow, 640, 480);
+        mCamera = new Camera();
+        mSceneTree = new SceneTree("root");
+
+        // initialize persistent light and material properties
+        mLightPos = vec3(1.0f, 1.0f, 1.0f);
+        mLightColor = vec3(1.0f, 1.0f, 1.0f);
+        mMaterialAmbient = vec3(0.5f, 0.5f, 0.5f);
+        mMaterialDiffuse = vec3(0.8f, 0.8f, 0.8f);
+        mMaterialSpecular = vec3(0.5f, 0.5f, 0.5f);
+        mShininess = 32.0f;
+    }
+
+    /// Destructor.
+    ~this() {
+        SDL_GL_DeleteContext(mContext);
+        SDL_DestroyWindow(mWindow);
+    }
+
+    /// Handle input.
+    void Input() {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                writeln("Exit event triggered");
+                mGameIsRunning = false;
+            }
+            if (event.type == SDL_KEYDOWN) {
+                if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+                    writeln("Pressed escape key");
+                    mGameIsRunning = false;
+                } else if (event.key.keysym.sym == SDLK_TAB) {
+                    mRenderWireframe = !mRenderWireframe;
+                } else if (event.key.keysym.sym == SDLK_DOWN) {
+                    mCamera.MoveBackward();
+                } else if (event.key.keysym.sym == SDLK_UP) {
+                    mCamera.MoveForward();
+                } else if (event.key.keysym.sym == SDLK_LEFT) {
+                    mCamera.MoveLeft();
+                } else if (event.key.keysym.sym == SDLK_RIGHT) {
+                    mCamera.MoveRight();
+                } else if (event.key.keysym.sym == SDLK_a) {
+                    mCamera.MoveUp();
+                } else if (event.key.keysym.sym == SDLK_z) {
+                    mCamera.MoveDown();
+                }
+                writeln("Camera Position: ", mCamera.mEyePosition);
+            }
+        }
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+        mCamera.MouseLook(mouseX, mouseY);
+    }
+
+    /// Setup the scene.
+    void SetupScene() {
+        // Create the pipeline and material for the bunny.
+        Pipeline basicPipeline = new Pipeline("basic", "./pipelines/basic/basic.vert", "./pipelines/basic/basic.frag");
+        IMaterial basicMaterial = new BasicMaterial("basic");
+
+        // // Load the bunny OBJ.
+        // ISurface obj = new SurfaceOBJ("./assets/bunny_centered.obj");
+        // MeshNode bunnyNode = new MeshNode("bunny", obj, basicMaterial);
+        // mSceneTree.GetRootNode().AddChildSceneNode(bunnyNode);
+
+		// // auto matData = parseMTL("./assets/bunny_centered_247_faces.mtl", "None");
+		// mObjectColor = vec3(1.0f, 1.0f, 1.0f);
+		// // NOTE: The material properties are set in the constructor of the BasicMaterial class, I'm not pulling from the MTL file here! (except the color)
+
+        // select P3 heightmap file
+        string heightmapFile = "./assets/heightmap.ppm"; // Or heightmap.ppm
+        // Choose scaling (XZ scale, Y scale)
+        float terrainXZScale = 20.0f;
+        float terrainYScale = 4.0f; // Adjust height exaggeration
+        ISurface terrainSurface = new SurfaceTerrain(heightmapFile, terrainXZScale, terrainYScale);
+
+        MeshNode terrainNode = new MeshNode("terrain", terrainSurface, basicMaterial);
+
+        terrainNode.mModelMatrix = MatrixMakeTranslation(vec3(0.0f, -2.0f, 0.0f)); // Example
+        mObjectColor = vec3(0.3f, 0.6f, 0.2f);
+
+        // Add lighting and material uniforms using persistent member variables.
+        basicMaterial.AddUniform(new Uniform("uLightPos", "vec3", &mLightPos));
+        basicMaterial.AddUniform(new Uniform("uLightColor", "vec3", &mLightColor));
+        basicMaterial.AddUniform(new Uniform("uViewPos", "vec3", mCamera.mEyePosition.DataPtr()));
+        basicMaterial.AddUniform(new Uniform("uMaterialAmbient", "vec3", &mMaterialAmbient));
+        basicMaterial.AddUniform(new Uniform("uMaterialDiffuse", "vec3", &mMaterialDiffuse));
+        basicMaterial.AddUniform(new Uniform("uMaterialSpecular", "vec3", &mMaterialSpecular));
+        basicMaterial.AddUniform(new Uniform("uShininess", mShininess));
+
+        // Add transformation uniforms.
+        basicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        basicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        basicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+        // Add the object inherent color uniform.
+        basicMaterial.AddUniform(new Uniform("uObjectColor", "vec3", &mObjectColor));
+
+        // // --- Create a light marker for debugging ---
+        // ISurface lightMarkerSurface = new SurfaceCube();
+        // // Use the same pipeline ("basic") for the light marker material.
+        // IMaterial lightMarkerMaterial = new BasicMaterial("basic");
+        // lightMarkerMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        // lightMarkerMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        // lightMarkerMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+		// vec3 whiteColor = vec3(1.0f, 1.0f, 1.0f);
+		// lightMarkerMaterial.AddUniform(new Uniform("uObjectColor", "vec3", &whiteColor));
 
 
-		/// A helper function to setup a scene.
-		/// NOTE: In the future this can use a configuration file to otherwise make our graphics applications
-		///       data-driven.
-		void SetupScene(){
+        // MeshNode lightMarkerNode = new MeshNode("light_marker", lightMarkerSurface, lightMarkerMaterial);
+        // mSceneTree.GetRootNode().AddChildSceneNode(lightMarkerNode);
+    }
 
-				// Create some nodes to attach to the SceneTree
-				// Geometry Data
-				GLfloat[] vertexData=
-						[
-						-0.5f,  -0.5f, 0.0f, 	// Left vertex position
-						1.0f,   0.0f, 0.0f, 	// color
-						0.5f,  -0.5f, 0.0f,  	// right vertex position
-						0.0f,   1.0f, 0.0f,  	// color
-						0.0f,   0.5f, 0.0f,  	// Top vertex position
-						0.0f,   0.0f, 1.0f,  	// color
-						];
+    /// Update game state.
+    void Update() {
+        // Animate the bunny.
+        // static float yRotation = 0.0f;
+        // yRotation += 0.01f;
+        // MeshNode bunnyNode = cast(MeshNode) mSceneTree.FindNode("bunny");
+        // bunnyNode.mModelMatrix = MatrixMakeTranslation(vec3(0.0f, 0.0f, -1.0f))
+        //                         * MatrixMakeYRotation(yRotation);
 
-				// Create a pipeline and associate it with a material
-				// that can be attached to meshes.
-				Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
-				IMaterial basicMaterial    = new BasicMaterial("basic");
+        // the light should ideally 'oprbit' around the bunny in a 3d plane
 
-				// Create an object and add it to our scene tree
-				ISurface triangle = new SurfaceTriangle(vertexData); 
-				MeshNode  m        = new MeshNode("triangle",triangle,basicMaterial);
-				mSceneTree.GetRootNode().AddChildSceneNode(m);
+        static float theta = 0.0f;  // azimuth angle
+        static float phi = 0.0f;    // polar angle
+		// NOTE: update to change speed and orbit
+        theta += 0.01f;
+        phi += 0.008f;
+        float r = 30.0f;
+        vec3 bunnyCenter = vec3(0.0f, 0.0f, 0.0f); // centered around the bunny
+        mLightPos.x = bunnyCenter.x + r * sin(phi) * cos(theta);
+        mLightPos.y = bunnyCenter.y + r * cos(phi);
+        mLightPos.z = bunnyCenter.z + r * sin(phi) * sin(theta);
+    }
 
-				// Add three uniforms to the basic material.
-				// The 4th parameter is set to the pointer where the value will be updated each frame.
-				// Becauses the model matrix will be different among models, then we will just leave
-				// this null for now.
-				basicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-				basicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-				basicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+    /// Render the scene.
+    void Render() {
+        if (mRenderWireframe) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        } else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+        mRenderer.Render(mSceneTree, mCamera);
+    }
 
-				// Create a second object
-				GLfloat[] vertexData2 =
-						[
-						-0.5f,  -0.5f, 0.0f, 	// Left vertex position
-						0.0f, 0.0f,						  // vertex texture(vt) coordinate
-						0.5f,  -0.5f, 0.0f,  	// right vertex position
-						1.0f, 0.0f,						  // vertex texture(vt) coordinate
-						0.0f,   0.5f, 0.0f,  	// Top vertex position
-						0.5f, 1.0f,						  // vertex texture(vt) coordinate
-						];
-				Pipeline texturePipeline = new Pipeline("multiTexturePipeline","./pipelines/multitexture/basic.vert","./pipelines/multitexture/basic.frag");
-				IMaterial multiTextureMaterial = new MultiTextureMaterial("multiTexturePipeline","./assets/sand.ppm","./assets/grass.ppm","./assets/dirt.ppm","./assets/snow.ppm");
-				multiTextureMaterial.AddUniform(new Uniform("sampler1", 0));
-				multiTextureMaterial.AddUniform(new Uniform("sampler2", 1));
-				multiTextureMaterial.AddUniform(new Uniform("sampler3", 2));
-				multiTextureMaterial.AddUniform(new Uniform("sampler4", 3));
-				multiTextureMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-				multiTextureMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-				multiTextureMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+    /// Process one frame.
+    void AdvanceFrame() {
+        Input();
+        Update();
+        Render();
+        SDL_Delay(16);  // ~60 FPS.
+    }
 
-				ISurface terrain = new SurfaceTerrain(256,256,"./assets/heightmap.ppm"); 
-				MeshNode  m2        			= new MeshNode("terrain",terrain,multiTextureMaterial);
-				mSceneTree.GetRootNode().AddChildSceneNode(m2);
-		}
-
-		/// Update gamestate
-		void Update(){
-				// A rotation value that 'updates' every frame to give some animation in our scene
-				static float yRotation = 0.0f;   yRotation += 0.01f;
-
-				// Update our first object
-				MeshNode m = cast(MeshNode)mSceneTree.FindNode("triangle");
-				m.mModelMatrix = MatrixMakeTranslation(vec3(0.0f,0.0f,-1.0f));
-				m.mModelMatrix = m.mModelMatrix * MatrixMakeYRotation(yRotation);
-
-				// Update our second object
-				MeshNode m2 = cast(MeshNode)mSceneTree.FindNode("terrain");
-				m2.mModelMatrix = MatrixMakeTranslation(vec3(-64,-80.0f,-64.0f));
-//				m2.mModelMatrix = m2.mModelMatrix * MatrixMakeScale(vec3(10.0f,10.0f,10.0f));
-//				m2.mModelMatrix = m2.mModelMatrix * MatrixMakeXRotation(90.0.ToRadians);
-		}
-
-		/// Render our scene by traversing the scene tree from a specific viewpoint
-		void Render(){
-				if(mRenderWireframe){
-						glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 
-				}else{
-						glPolygonMode(GL_FRONT_AND_BACK,GL_FILL); 
-				}
-
-				mRenderer.Render(mSceneTree,mCamera);
-		}
-
-		/// Process 1 frame
-		void AdvanceFrame(){
-				Input();
-				Update();
-				Render();
-				
-				SDL_Delay(16);	// NOTE: This is a simple way to cap framerate at 60 FPS,
-								// 		  you might be inclined to improve things a bit.
-		}
-
-		/// Main application loop
-		void Loop(){
-				// Setup the graphics scene
-				SetupScene();
-
-				// Lock mouse to center of screen
-				// This will help us get a continuous rotation.
-				// NOTE: On occasion folks on virtual machine or WSL may not have this work,
-				//       so you'll have to compute the 'diff' and reposition the mouse yourself.
-				SDL_WarpMouseInWindow(mWindow,640/2,320/2);
-
-				// Run the graphics application loop
-				while(mGameIsRunning){
-						AdvanceFrame();
-				}
-		}
+    /// Main application loop.
+    void Loop() {
+        SetupScene();
+        SDL_WarpMouseInWindow(mWindow, 640 / 2, 320 / 2);
+        while (mGameIsRunning) {
+            AdvanceFrame();
+        }
+    }
 }
-

@@ -358,6 +358,21 @@ float Magnitude(vec4 v){
 		return sqrt(v.x*v.x + v.y*v.y + v.z*v.z + v.w*v.w);
 }
 
+/// Return the squared Magnitude (length squared) of a vector (avoids sqrt)
+float LengthSquared(vec2 v){
+    return v.x*v.x + v.y*v.y;
+}
+/// Return the squared Magnitude (length squared) of a vector (avoids sqrt)
+float LengthSquared(vec3 v){
+    return v.x*v.x + v.y*v.y + v.z*v.z;
+}
+/// Return the squared Magnitude (length squared) of a vector (avoids sqrt)
+float LengthSquared(vec4 v){
+    // Note: Usually don't compute length for points (w=1)
+    // but okay for vectors (w=0). Matches Magnitude logic.
+    return v.x*v.x + v.y*v.y + v.z*v.z + v.w*v.w;
+}
+
 /// Returns a unit vector
 vec2 Normalize(vec2 v){
 		float length = Magnitude(v);

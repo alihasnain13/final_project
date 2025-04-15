@@ -42,14 +42,14 @@ class SurfaceTriangle: ISurface{
         glBindBuffer(GL_ARRAY_BUFFER, mVBO);
         glBufferData(GL_ARRAY_BUFFER, vbo.length* GLfloat.sizeof, vbo.ptr, GL_STATIC_DRAW);
 
-				// Function call to setup attributes
-				SetVertexAttributes!VertexFormat3F3F();
+        // Function call to setup attributes
+        SetVertexAttributes!VertexFormat3F3F();
 
         // Unbind our currently bound Vertex Array Object
         glBindVertexArray(0);
 
-				// Turn off attributes
-				DisableVertexAttributes!VertexFormat3F3F();
+        // Turn off attributes
+        DisableVertexAttributes!VertexFormat3F3F();
     }
 }
 
@@ -87,14 +87,14 @@ class SurfaceTexturedTriangle: ISurface{
         glBindBuffer(GL_ARRAY_BUFFER, mVBO);
         glBufferData(GL_ARRAY_BUFFER, vbo.length* GLfloat.sizeof, vbo.ptr, GL_STATIC_DRAW);
 
-				// Function call to setup attributes
-				SetVertexAttributes!VertexFormat3F2F();
+        // Function call to setup attributes
+        SetVertexAttributes!VertexFormat3F2F();
 
         // Unbind our currently bound Vertex Array Object
         glBindVertexArray(0);
 
-				// Turn off attributes
-				DisableVertexAttributes!VertexFormat3F2F();
+        // Turn off attributes
+        DisableVertexAttributes!VertexFormat3F2F();
     }
 }
 

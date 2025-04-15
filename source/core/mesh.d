@@ -26,10 +26,8 @@ class MeshNode : ISceneNode{
         /// Update the material
         mMaterial.Update();
 
-        // Only update "uModel" if it exists.
-        if("uModel" in mMaterial.mUniformMap) {
-            mMaterial.mUniformMap["uModel"].Set(mModelMatrix.DataPtr());
-        }
+        // Update the model matrix based on the mesh we are attached to
+        mMaterial.mUniformMap["uModel"].Set(mModelMatrix.DataPtr());
 
         // Update all of the uniform values
         // This will happen prior to the draw call

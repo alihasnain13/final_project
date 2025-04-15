@@ -1,164 +1,236 @@
-/// Create a triangle strip for terrain
-module terraingeometry;
+// In source/geometry/terraingeometry.d
+module terraingeometry; // Adjusted module name to match path
 
 import bindbc.opengl;
 import std.stdio;
+import std.math; // For sin, cos if needed later, maybe approxEqual
+import std.exception;
+import std.conv : to; // For string conversion if needed
+
+// Use specific imports from geometry package
 import geometry;
-import core;
-import error;
+import core;           // For PPM struct
+import linear;               // For vec2, vec3, Normalize
 
-// toggle tessellation on/off
-shared bool useTessellation = false;
-
-
-/// Geometry stores all of the vertices and/or indices for a 3D object.
-/// Geometry also has the responsibility of setting up the 'attributes'
-class SurfaceTerrain: ISurface{
+/// Creates terrain geometry from a P3 PPM heightmap (expecting R=G=B grayscale).
+class SurfaceTerrain : ISurface {
+    // OpenGL handles (ensure mVAO is accessible, e.g., from ISurface)
+    // GLuint mVAO; // If not inherited, declare here
     GLuint mVBO;
     GLuint mIBO;
-    GLuint mTessIBO; // new IBO for tessellation indices
 
-    VertexFormat3F2F[] mVertices;
+    // Use vertex format with normals for lighting!
+    VertexFormat3F3F2F[] mVertices;
     GLuint[] mIndices;
-    GLuint[] mTessIndices;  // For tessellation (quad patches).
-    size_t mTriangles;
 
-    uint mXDimensions;
-    uint mZDimensions;
+    // Store dimensions and scaling
+    uint mGridWidth;
+    uint mGridHeight;
+    float mXZScale = 1.0f;
+    float mYScale = 10.0f; // Controls terrain height exaggeration
 
-    /// Constructor to make a new terrain.
-    /// filename - heightmap filename
-    this(uint xDim, uint zDim, string heightmap_file){
-        mXDimensions = xDim;
-        mZDimensions = zDim;
-        MakeTerrain(xDim,zDim, heightmap_file);
+    /// Constructor to make a new terrain from a P3 PPM file.
+    /// Takes filename and optional scaling factors.
+    this(string heightmap_p3_file, float scaleXZ = 1.0f, float scaleY = 10.0f) {
+        // Store scaling factors
+        mXZScale = scaleXZ;
+        mYScale = scaleY;
+        // Generate the terrain mesh
+        MakeTerrain(heightmap_p3_file);
     }
 
-    /// Render our geometry
-    // NOTE: It can be handy with terrains to draw them in wireframe
-    //       mode to otherwise debug them.
-    // NOTE: It can be handy with terrains to draw as 'points' to make sure
-    //  		 the 'grid' is otherwise generated correctly if you have trouble
-    // 			 with indexing.
-    override void Render(){
-        // Bind to our geometry that we want to draw
-        glBindVertexArray(mVAO);
-        // Call our draw call
+     /// Destructor (important to clean up OpenGL resources if not done by base class)
+    ~this() {
+        if (mVBO != 0) glDeleteBuffers(1, &mVBO);
+        if (mIBO != 0) glDeleteBuffers(1, &mIBO);
+        // Make sure mVAO is declared/accessible in this class or base class
+        if (mVAO != 0) glDeleteVertexArrays(1, &mVAO);
+        writeln("Cleaned up SurfaceTerrain GL resources.");
+    }
 
-        if(useTessellation) { // TODO: review this!!
-            // Tessellation mode: use the patch draw call.
-            glPatchParameteri(GL_PATCH_VERTICES, 4);
-            // Bind the tessellation index buffer.
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTessIBO);
-            // The total number of patches is (mXDimensions - 1) * (mZDimensions - 1).
-            int totalPatches = cast(int)((mXDimensions - 1) * (mZDimensions - 1));
-            int totalIndices = totalPatches * 4; // 4 vertices per patch.
-            glDrawElements(GL_PATCHES, totalIndices, GL_UNSIGNED_INT, cast(void*)0);
+
+    // --- Helper: Reads height from interleaved RGB data (takes R component) ---
+    private float getHeightFromRGB(int x, int y, const(ubyte)[] rgb_pixels, uint width, uint height, uint maxValue) {
+        // Clamp coordinates to valid range to avoid errors at edges during normal calculation
+        if (x < 0) x = 0;
+        if (x >= width) x = width - 1;
+        if (y < 0) y = 0;
+        if (y >= height) y = height - 1;
+
+        // Index points to the R component for pixel (x, y)
+        size_t index = (y * width + x) * 3; // Stride is 3 bytes
+        // Safety check for pixel array bounds
+        if (index >= rgb_pixels.length) {
+             stderr.writeln("getHeightFromRGB: Index out of bounds (", index, " >= ", rgb_pixels.length, ") for xy(", x, ",", y, ")");
+             return 0.0f; // Return safe value on error
+        }
+        ubyte heightVal = rgb_pixels[index]; // Read the R value
+
+        // Normalize 8-bit value (0-maxValue) to 0.0-1.0 and scale by mYScale
+        // Use double for intermediate calculation for slightly better precision
+        return (cast(double)heightVal / maxValue) * mYScale;
+    }
+
+    // --- Helper: Calculates normal using height derived from RGB data ---
+    private vec3 calculateNormalFromRGB(int x, int z, const(ubyte)[] rgb_pixels, uint width, uint height, uint maxValue) {
+        // Get heights of neighbouring pixels using the helper
+        float heightL = getHeightFromRGB(x - 1, z, rgb_pixels, width, height, maxValue); // Left
+        float heightR = getHeightFromRGB(x + 1, z, rgb_pixels, width, height, maxValue); // Right
+        float heightD = getHeightFromRGB(x, z - 1, rgb_pixels, width, height, maxValue); // Down (towards -Z)
+        float heightU = getHeightFromRGB(x, z + 1, rgb_pixels, width, height, maxValue); // Up (towards +Z)
+
+        // Calculate normal vector using finite differences
+        // The Y component affects steepness influence relative to XZ scale
+        vec3 normal = vec3(heightL - heightR, 2.0f * mXZScale, heightD - heightU);
+        // Handle cases where normal might be zero vector (perfectly flat plane)
+        if (LengthSquared(normal) < 0.00001f) {
+            return vec3(0.0f, 1.0f, 0.0f); // Return up vector if flat
+        }
+        return Normalize(normal); // Make it a unit vector
+    }
+
+
+    /// Generates the terrain mesh from the loaded P3 PPM data
+    void MakeTerrain(string heightmap_p3_file) {
+        PPM ppmImage;
+        writeln("Loading terrain heightmap (P3 expected): ", heightmap_p3_file);
+        // Call the P3 loader from core.image
+        bool loaded = ppmImage.load(heightmap_p3_file); // <-- FIXED FUNCTION CALL
+
+        if (!loaded || ppmImage.mWidth == 0 || ppmImage.mHeight == 0) {
+             stderr.writeln("MakeTerrain: Failed P3 load. Creating flat placeholder plane.");
+             // Create a small default flat plane (ensure correct VertexFormat)
+             mGridWidth = 2; mGridHeight = 2; mYScale = 0; mXZScale = 1.0;
+             mVertices = [ VertexFormat3F3F2F(vec3(-1,0,-1), vec3(0,1,0), vec2(0,0)),
+                           VertexFormat3F3F2F(vec3( 1,0,-1), vec3(0,1,0), vec2(1,0)),
+                           VertexFormat3F3F2F(vec3(-1,0, 1), vec3(0,1,0), vec2(0,1)),
+                           VertexFormat3F3F2F(vec3( 1,0, 1), vec3(0,1,0), vec2(1,1)) ];
+             mIndices = [ 0, 2, 1, 3 ]; // Simple quad strip
         } else {
-            // Standard mode: use the triangle strip draw call.
-            // Bind the original index buffer.
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
-            for (uint z = 0; z < mZDimensions - 1; z++) {
-                size_t indexCount = mXDimensions * 2;
-                size_t offset = z * indexCount * GLuint.sizeof;
-                glDrawElements(GL_TRIANGLE_STRIP, cast(int)indexCount, GL_UNSIGNED_INT, cast(void*)offset);
-            }
-        }
+             // Use loaded data
+             mGridWidth = ppmImage.mWidth;
+             mGridHeight = ppmImage.mHeight;
+             uint maxValue = ppmImage.mMaxValue;
+             auto rgb_pixels = ppmImage.mPixels; // ubyte[] (R,G,B,...)
 
-        glBindVertexArray(0);
+             writeln("Generating terrain mesh: ", mGridWidth, "x", mGridHeight);
+
+             // --- Generate Vertices ---
+             mVertices.length = mGridWidth * mGridHeight; // Pre-allocate
+             size_t vtxIdx = 0;
+             for (uint z = 0; z < mGridHeight; z++) { // Use uint for consistency
+                 for (uint x = 0; x < mGridWidth; x++) {
+                     float yPos = getHeightFromRGB(x, z, rgb_pixels, mGridWidth, mGridHeight, maxValue);
+                     // Center terrain around origin
+                     float xPos = (cast(float)x - (mGridWidth - 1) / 2.0f) * mXZScale;
+                     float zPos = (cast(float)z - (mGridHeight - 1) / 2.0f) * mXZScale;
+                     // Calculate texture coords (0.0 to 1.0)
+                     float u = (mGridWidth > 1) ? cast(float)x / (mGridWidth - 1) : 0.0f;
+                     float v = (mGridHeight > 1) ? cast(float)z / (mGridHeight - 1) : 0.0f;
+                     // Calculate normal
+                     vec3 normal = calculateNormalFromRGB(x, z, rgb_pixels, mGridWidth, mGridHeight, maxValue);
+
+                     // Assign vertex data (ensure vec types match VertexFormat)
+                     mVertices[vtxIdx++] = VertexFormat3F3F2F(vec3(xPos, yPos, zPos), normal, vec2(u, v));
+                 }
+             }
+
+             // --- Generate Indices for Triangle Strip ---
+             if (mGridWidth < 2 || mGridHeight < 2) {
+                 writeln("Terrain too small to generate indices.");
+                 mIndices = null; // No strips possible
+             } else {
+                 mIndices.length = (mGridHeight - 1) * mGridWidth * 2; // Pre-allocate
+                 size_t idx = 0;
+                 for (uint z = 0; z < mGridHeight - 1; z++) {
+                     for (uint x = 0; x < mGridWidth; x++) {
+                         uint index1 = z * mGridWidth + x;
+                         uint index2 = (z + 1) * mGridWidth + x;
+                         mIndices[idx++] = index1;
+                         mIndices[idx++] = index2;
+                     }
+                 }
+             }
+        } // end else (loaded successfully)
+
+        writeln("Generated ", mVertices.length, " vertices and ", mIndices.length, " indices.");
+
+        // --- OpenGL Buffer Setup ---
+        // Check if we actually have something to buffer
+        if (mVertices.length > 0 && mIndices.length > 0) {
+             // Ensure VAO is generated (assuming mVAO=0 initially)
+             if (mVAO == 0) glGenVertexArrays(1, &mVAO);
+             glBindVertexArray(mVAO);
+
+             // VBO
+             if (mVBO == 0) glGenBuffers(1, &mVBO); // Generate if not already existing
+             glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+             // Use VertexFormat3F3F2F size
+             glBufferData(GL_ARRAY_BUFFER, mVertices.length * VertexFormat3F3F2F.sizeof, mVertices.ptr, GL_STATIC_DRAW);
+
+             // IBO
+             if (mIBO == 0) glGenBuffers(1, &mIBO); // Generate if not already existing
+             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
+             glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.length * GLuint.sizeof, mIndices.ptr, GL_STATIC_DRAW);
+
+             // Setup vertex attributes using the correct format
+             SetVertexAttributes!VertexFormat3F3F2F(); // Make sure this template exists and works!
+
+             glBindVertexArray(0); // Unbind VAO
+             glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
+             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Unbind IBO
+             writeln("OpenGL buffers created/updated for terrain.");
+        } else {
+             stderr.writeln("MakeTerrain: No vertices/indices generated, skipping GL setup.");
+             // Optional: Clean up existing buffers if they should be empty now?
+             // if (mVBO != 0) { glDeleteBuffers(1, &mVBO); mVBO = 0; }
+             // if (mIBO != 0) { glDeleteBuffers(1, &mIBO); mIBO = 0; }
+             // if (mVAO != 0) { glDeleteVertexArrays(1, &mVAO); mVAO = 0; }
+        }
     }
 
-    /// Setup MeshNode as a Triangle
-    void MakeTerrain(uint xDim, uint zDim, string heightmap_file){
-        // Create a grid of vertices
-        // Important to keep track of how we generate grid.
-        // We iterate trough 'x' on inner loop, so we produce
-        // 'rows' across first.
-        PPM heights;
-        ubyte[] height_values = heights.LoadPPMImage(heightmap_file);
 
-        for(int z=0; z < zDim; z++){
-            for(int x=0; x < xDim; x++){
-
-                // Add vertices in a grid
-                size_t currIndex = z * xDim + x;
-
-                float heightValue = cast(float) height_values[currIndex];
-                float maxHeight = 85.0f;  // maximum height in the heightmap
-                float y = (heightValue / 255.0f) * maxHeight;
-
-                // calculate x and z positions
-                float posX = cast(float)x;
-                float posZ = cast(float)z;
-
-                // compute UV coordinates normalized over the grid
-                float u = cast(float)x / (xDim - 1);
-                float v = cast(float)(z) / (zDim - 1);
-
-                // create and add the vertex
-                mVertices ~= VertexFormat3F2F([posX, y, posZ], [u, v]);
-            }
+    /// Render the terrain mesh
+    override void Render() {
+        // Check if geometry is valid before rendering
+        if (mVAO == 0 || mIndices.length == 0) {
+             return; // Don't attempt to render if VAO/IBO isn't set up or empty
         }
 
-        // Connect the grid of vertices with indices
-        for(uint z=0; z < zDim-1; z++){
-            for(uint x=0; x < xDim; x++){
-
-                // compute the index for the vertex in the current row (z)
-                int index1 = z * xDim + x;
-                // and for the vertex in the next row (z + 1)
-                int index2 = (z + 1) * xDim + x;
-
-                mIndices ~= index1; 	
-                mIndices ~= index2; 	
-            }
-        }
-
-        // Generate tessellation indices for quads.
-        // For each quad in the grid, create a patch with 4 vertices.
-        for(uint z = 0; z < zDim - 1; z++) {
-            for(uint x = 0; x < xDim - 1; x++) {
-                int topLeft = z * xDim + x;
-                int topRight = topLeft + 1;
-                int bottomLeft = (z + 1) * xDim + x;
-                int bottomRight = bottomLeft + 1;
-                // Order: topLeft, topRight, bottomRight, bottomLeft.
-                mTessIndices ~= topLeft;
-                mTessIndices ~= topRight;
-                mTessIndices ~= bottomRight;
-                mTessIndices ~= bottomLeft;
-            }
-        }
-        
-
-        // Setup VAO and VBO (same as before).
-        glGenVertexArrays(1, &mVAO);
         glBindVertexArray(mVAO);
 
-        // Setup IBO for standard mode.
-        glGenBuffers(1, &mIBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.length * GLuint.sizeof, mIndices.ptr, GL_STATIC_DRAW);
+        // Draw using triangle strips and the generated indices
+        glDrawElements(
+            GL_TRIANGLE_STRIP,          // mode
+            cast(GLsizei)mIndices.length, // count (number of indices)
+            GL_UNSIGNED_INT,            // type of indices
+            null                        // pointer (offset, null because IBO is bound)
+        );
 
-        // Setup VBO.
-        glGenBuffers(1, &mVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-        glBufferData(GL_ARRAY_BUFFER, mVertices.length * VertexFormat3F2F.sizeof, mVertices.ptr, GL_STATIC_DRAW);
-
-        // Setup vertex attributes.
-        SetVertexAttributes!VertexFormat3F2F();
-
-        glBindVertexArray(0);
-        DisableVertexAttributes!VertexFormat3F2F();
-
-        // Setup IBO for tessellation mode.
-        glGenBuffers(1, &mTessIBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mTessIBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mTessIndices.length * GLuint.sizeof, mTessIndices.ptr, GL_STATIC_DRAW);
-        // Unbind the buffer.
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+        glBindVertexArray(0); // Unbind VAO
     }
-}
+
+} // end class SurfaceTerrain
 
 
+// --- Template functions for Vertex Attributes ---
+// IMPORTANT: Ensure these templates are defined *somewhere* accessible
+// by this module (e.g., in geometry.vertexformats or a common helper module)
+// and that VertexFormat3F3F2F has the necessary static methods.
+
+// Example placeholder if not defined elsewhere:
+// template SetVertexAttributes(VertexFormat) {
+//     static if (__traits(hasMember, VertexFormat, "SetupAttributes")) {
+//         VertexFormat.SetupAttributes();
+//     } else {
+//         static assert(false, "VertexFormat missing static SetupAttributes method");
+//     }
+// }
+
+// template DisableVertexAttributes(VertexFormat) {
+//     static if (__traits(hasMember, VertexFormat, "DisableAttributes")) {
+//         VertexFormat.DisableAttributes();
+//     } else {
+//         static assert(false, "VertexFormat missing static DisableAttributes method");
+//     }
+// }

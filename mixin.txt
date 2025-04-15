@@ -52,11 +52,11 @@ alias STARTUPINFOW STARTUPINFO;
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\bindbc\sdl\codegen.d(13,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\bindbc\sdl\codegen.d(13,1)
 alias joinFnBinds = bindbc.common.codegen.joinFnBinds!false;
 alias FnBind = bindbc.common.codegen.FnBind;
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\assert_.d(36,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\assert_.d(36,1)
 private nothrow @nogc{
 	alias _pSDL_SetAssertionHandler = extern(C) void function(SDL_AssertionHandler handler, void* userData);
 	alias _pSDL_GetAssertionReport = extern(C) const(SDL_assert_data)* function();
@@ -82,7 +82,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_ResetAssertionReport, here.SDL_ResetAssertionReport.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\stdinc.d(133,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\stdinc.d(133,1)
 private nothrow @nogc{
 	alias _pSDL_malloc = extern(C) void* function(size_t size);
 	alias _pSDL_calloc = extern(C) void* function(size_t nMemB, size_t size);
@@ -366,7 +366,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_iconv_string, here.SDL_iconv_string.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\atomic.d(154,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\atomic.d(154,1)
 private nothrow @nogc{
 	alias _pSDL_AtomicTryLock = extern(C) SDL_bool function(SDL_SpinLock* lock);
 	alias _pSDL_AtomicLock = extern(C) void function(SDL_SpinLock* lock);
@@ -400,7 +400,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_AtomicCASPtr, here.SDL_AtomicCASPtr.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\rwops.d(106,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\rwops.d(106,1)
 private nothrow @nogc{
 	alias _pSDL_RWFromFile = extern(C) SDL_RWops* function(const(char)* file, const(char)* mode);
 	alias _pSDL_RWFromMem = extern(C) SDL_RWops* function(void* mem, int size);
@@ -494,7 +494,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_RWFromFP, here.SDL_RWFromFP.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\audio.d(142,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\audio.d(142,1)
 private nothrow @nogc{
 	alias _pSDL_GetNumAudioDrivers = extern(C) int function();
 	alias _pSDL_GetAudioDriver = extern(C) const(char)* function(int index);
@@ -608,7 +608,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_CloseAudioDevice, here.SDL_CloseAudioDevice.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\blendmode.d(59,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\blendmode.d(59,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -622,7 +622,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\clipboard.d(15,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\clipboard.d(15,1)
 private nothrow @nogc{
 	alias _pSDL_SetClipboardText = extern(C) int function(const(char)* text);
 	alias _pSDL_GetClipboardText = extern(C) char* function();
@@ -648,7 +648,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_HasClipboardText, here.SDL_HasClipboardText.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\cpuinfo.d(17,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\cpuinfo.d(17,1)
 private nothrow @nogc{
 	alias _pSDL_GetCPUCount = extern(C) int function();
 	alias _pSDL_GetCPUCacheLineSize = extern(C) int function();
@@ -706,7 +706,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_HasSSE42, here.SDL_HasSSE42.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\error.d(29,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\error.d(29,1)
 private nothrow @nogc{
 	alias _pSDL_SetError = extern(C) void function(const(char)* fmt, ...);
 	alias _pSDL_GetError = extern(C) const(char)* function();
@@ -735,7 +735,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_Error, here.SDL_Error.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\touch.d(37,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\touch.d(37,1)
 private nothrow @nogc{
 	alias _pSDL_GetNumTouchDevices = extern(C) int function();
 	alias _pSDL_GetTouchDevice = extern(C) SDL_TouchID function(int index);
@@ -765,7 +765,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetTouchFinger, here.SDL_GetTouchFinger.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\gesture.d(18,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\gesture.d(18,1)
 private nothrow @nogc{
 	alias _pSDL_RecordGesture = extern(C) int function(SDL_TouchID touchID);
 	alias _pSDL_SaveAllDollarTemplates = extern(C) int function(SDL_RWops* dst);
@@ -795,7 +795,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_LoadDollarTemplates, here.SDL_LoadDollarTemplates.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\guid.d(16,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\guid.d(16,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -809,7 +809,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\joystick.d(103,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\joystick.d(103,1)
 private nothrow @nogc{
 	alias _pSDL_NumJoysticks = extern(C) int function();
 	alias _pSDL_JoystickNameForIndex = extern(C) const(char)* function(int deviceIndex);
@@ -907,7 +907,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_JoystickClose, here.SDL_JoystickClose.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\rect.d(74,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\rect.d(74,1)
 private nothrow @nogc{
 	alias _pSDL_HasIntersection = extern(C) SDL_bool function(const(SDL_Rect)* a, const(SDL_Rect)* b);
 	alias _pSDL_IntersectRect = extern(C) SDL_bool function(const(SDL_Rect)* a, const(SDL_Rect)* b,SDL_Rect* result);
@@ -941,7 +941,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_IntersectRectAndLine, here.SDL_IntersectRectAndLine.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\pixels.d(361,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\pixels.d(361,1)
 private nothrow @nogc{
 	alias _pSDL_GetPixelFormatName = extern(C) const(char)* function(SDL_PixelFormatEnum format);
 	alias _pSDL_PixelFormatEnumToMasks = extern(C) SDL_bool function(SDL_PixelFormatEnum format, int* bpp, uint* rMask, uint* gMask, uint* bMask, uint* aMask);
@@ -1011,7 +1011,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_CalculateGammaRamp, here.SDL_CalculateGammaRamp.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\surface.d(78,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\surface.d(78,1)
 private nothrow @nogc{
 	alias _pSDL_CreateRGBSurface = extern(C) SDL_Surface* function(uint flags, int width, int height, int depth, uint rMask, uint gMask, uint bMask, uint aMask);
 	alias _pSDL_CreateRGBSurfaceFrom = extern(C) SDL_Surface* function(void* pixels, int width, int height, int depth, int pitch, uint rMask, uint gMask, uint bMask, uint aMask);
@@ -1141,7 +1141,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_LowerBlitScaled, here.SDL_LowerBlitScaled.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\video.d(250,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\video.d(250,1)
 private nothrow @nogc{
 	alias _pSDL_GetNumVideoDrivers = extern(C) int function();
 	alias _pSDL_GetVideoDriver = extern(C) const(char)* function(int index);
@@ -1435,7 +1435,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GL_DeleteContext, here.SDL_GL_DeleteContext.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\keyboard.d(26,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\keyboard.d(26,1)
 private nothrow @nogc{
 	alias _pSDL_GetKeyboardFocus = extern(C) SDL_Window* function();
 	alias _pSDL_GetKeyboardState = extern(C) ubyte* function(int* numKeys);
@@ -1513,7 +1513,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_SetTextInputRect, here.SDL_SetTextInputRect.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\syswm.d(244,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\syswm.d(244,1)
 private nothrow @nogc{
 	alias _pSDL_GetWindowWMInfo = extern(C) SDL_bool function(SDL_Window* window, SDL_SysWMinfo* info);
 }
@@ -1531,7 +1531,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetWindowWMInfo, here.SDL_GetWindowWMInfo.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\events.d(517,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\events.d(517,1)
 private nothrow @nogc{
 	alias _pSDL_PumpEvents = extern(C) void function();
 	alias _pSDL_PeepEvents = extern(C) int function(SDL_Event* events, int numEvents, SDL_eventaction action, SDL_EventType minType, SDL_EventType maxType);
@@ -1613,7 +1613,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_RegisterEvents, here.SDL_RegisterEvents.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\filesystem.d(13,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\filesystem.d(13,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -1627,7 +1627,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\sensor.d(36,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\sensor.d(36,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -1641,7 +1641,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\gamecontroller.d(127,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\gamecontroller.d(127,1)
 private nothrow @nogc{
 	alias _pSDL_GameControllerAddMapping = extern(C) int function(const(char)* mappingString);
 	alias _pSDL_GameControllerMappingForGUID = extern(C) char* function(SDL_JoystickGUID guid);
@@ -1735,7 +1735,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GameControllerClose, here.SDL_GameControllerClose.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\hidapi.d(36,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\hidapi.d(36,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -1749,7 +1749,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\haptic.d(168,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\haptic.d(168,1)
 private nothrow @nogc{
 	alias _pSDL_NumHaptics = extern(C) int function();
 	alias _pSDL_HapticName = extern(C) const(char)* function(int deviceIndex);
@@ -1883,7 +1883,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_HapticRumbleStop, here.SDL_HapticRumbleStop.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\hints.d(278,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\hints.d(278,1)
 private nothrow @nogc{
 	alias _pSDL_SetHintWithPriority = extern(C) SDL_bool function(const(char)* name, const(char)* value, SDL_HintPriority priority);
 	alias _pSDL_SetHint = extern(C) SDL_bool function(const(char)* name, const(char)* value);
@@ -1921,7 +1921,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_ClearHints, here.SDL_ClearHints.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\loadso.d(13,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\loadso.d(13,1)
 private nothrow @nogc{
 	alias _pSDL_LoadObject = extern(C) void* function(const(char)* soFile);
 	alias _pSDL_LoadFunction = extern(C) void* function(void* handle,const(char*) name);
@@ -1947,7 +1947,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_UnloadObject, here.SDL_UnloadObject.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\locale.d(19,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\locale.d(19,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -1961,7 +1961,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\log.d(55,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\log.d(55,1)
 private nothrow @nogc{
 	alias _pSDL_LogSetAllPriority = extern(C) void function(SDL_LogPriority priority);
 	alias _pSDL_LogSetPriority = extern(C) void function(int category, SDL_LogPriority priority);
@@ -2027,7 +2027,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_LogSetOutputFunction, here.SDL_LogSetOutputFunction.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\messagebox.d(79,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\messagebox.d(79,1)
 private nothrow @nogc{
 	alias _pSDL_ShowMessageBox = extern(C) int function(const(SDL_MessageBoxData)* messageBoxData, int* buttonID);
 	alias _pSDL_ShowSimpleMessageBox = extern(C) int function(SDL_MessageBoxFlags flags, const(char)* title, const(char)* messsage, SDL_Window* window);
@@ -2049,7 +2049,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_ShowSimpleMessageBox, here.SDL_ShowSimpleMessageBox.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\metal.d(16,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\metal.d(16,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -2063,7 +2063,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\misc.d(13,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\misc.d(13,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -2077,7 +2077,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\mouse.d(63,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\mouse.d(63,1)
 private nothrow @nogc{
 	alias _pSDL_GetMouseFocus = extern(C) SDL_Window* function();
 	alias _pSDL_GetMouseState = extern(C) uint function(int* x, int* y);
@@ -2147,7 +2147,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_ShowCursor, here.SDL_ShowCursor.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\mutex.d(24,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\mutex.d(24,1)
 private nothrow @nogc{
 	alias _pSDL_CreateMutex = extern(C) SDL_mutex* function();
 	alias _pSDL_LockMutex = extern(C) int function(SDL_mutex* mutex);
@@ -2233,7 +2233,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_CondWaitTimeout, here.SDL_CondWaitTimeout.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\platform.d(13,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\platform.d(13,1)
 private nothrow @nogc{
 	alias _pSDL_GetPlatform = extern(C) const(char)* function();
 }
@@ -2251,7 +2251,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetPlatform, here.SDL_GetPlatform.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\power.d(22,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\power.d(22,1)
 private nothrow @nogc{
 	alias _pSDL_GetPowerInfo = extern(C) SDL_PowerState function(int* seconds, int* percent);
 }
@@ -2269,7 +2269,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetPowerInfo, here.SDL_GetPowerInfo.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\render.d(82,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\render.d(82,1)
 private nothrow @nogc{
 	alias _pSDL_GetNumRenderDrivers = extern(C) int function();
 	alias _pSDL_GetRenderDriverInfo = extern(C) int function(int index, SDL_RendererInfo* info);
@@ -2491,7 +2491,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GL_UnbindTexture, here.SDL_GL_UnbindTexture.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\shape.d(50,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\shape.d(50,1)
 private nothrow @nogc{
 	alias _pSDL_CreateShapedWindow = extern(C) SDL_Window* function(const(char)* title, uint x, uint y, uint w, uint h, SDL_WindowFlags flags);
 	alias _pSDL_IsShapedWindow = extern(C) SDL_bool function(const(SDL_Window)* window);
@@ -2521,7 +2521,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetShapedWindowMode, here.SDL_GetShapedWindowMode.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\system.d(66,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\system.d(66,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -2535,7 +2535,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\thread.d(88,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\thread.d(88,1)
 private nothrow @nogc{
 	alias _pSDL_GetThreadName = extern(C) const(char)* function(SDL_Thread* thread);
 	alias _pSDL_ThreadID = extern(C) SDL_threadID function();
@@ -2585,7 +2585,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_CreateThread, here.SDL_CreateThread.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\timer.d(22,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\timer.d(22,1)
 private nothrow @nogc{
 	alias _pSDL_GetTicks = extern(C) uint function();
 	alias _pSDL_GetPerformanceCounter = extern(C) ulong function();
@@ -2623,7 +2623,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_RemoveTimer, here.SDL_RemoveTimer.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\version_.d(36,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\version_.d(36,1)
 private nothrow @nogc{
 	alias _pSDL_GetVersion = extern(C) void function(SDL_version* ver);
 	alias _pSDL_GetRevision = extern(C) const(char)* function();
@@ -2649,7 +2649,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetRevisionNumber, here.SDL_GetRevisionNumber.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\vulkan.d(16,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\vulkan.d(16,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -2663,7 +2663,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\package.d(89,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\package.d(89,1)
 private nothrow @nogc{
 	alias _pSDL_Init = extern(C) int function(uint flags);
 	alias _pSDL_InitSubSystem = extern(C) int function(uint flags);
@@ -2697,7 +2697,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_Quit, here.SDL_Quit.mangleof);
 }
 
-// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.1\bindbc-sdl\source\sdl\package.d(133,1)
+// expansion at C:\Users\aliha\AppData\Local\dub\packages\bindbc-sdl\1.5.2\bindbc-sdl\source\sdl\package.d(133,1)
 
 void unloadSDL(){ if(lib != invalidHandle) lib.unload(); }
 
@@ -2788,92 +2788,28 @@ onOutOfMemoryError();
 // expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\internal\memory.d(48,18)
 onOutOfMemoryError();
 
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\internal\memory.d(40,18)
-onOutOfMemoryError();
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\druntime\import\core\atomic.d(542,9)
+*cast(T*)&val+=mod
 
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\druntime\import\core\internal\atomic.d(264,13)
 
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+                asm pure nothrow @nogc @trusted
+                {
+                    naked;
+                    lock; xadd[RDX], ECX;
+                    mov EAX, ECX;
+                    ret;
+                }
 
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(222,13)
-alias a = __a ;
 
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(223,13)
-alias b = __b ;
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\stdio.d(5251,38)
+core.stdc.stdio.stderr
 
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(224,20)
-a == b
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\druntime\import\core\atomic.d(542,9)
+*cast(T*)&val+=mod
 
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(222,13)
-alias a = __a ;
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(223,13)
-alias b = __b ;
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(224,20)
-a == b
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(222,13)
-alias a = __a ;
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(223,13)
-alias b = __b ;
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(224,20)
-a == b
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(452,16)
-cast(T)a < cast(T) b
-
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(467,13)
-enum int data = 0;
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(467,13)
-enum int count = 0;
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(654,9)
-alias _0LU = Identity!(field[0LU]);alias data = _0LU;alias _1LU = Identity!(field[1LU]);alias count = _1LU;
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(654,9)
-alias _0LU = Identity!(field[0LU]);alias _1LU = Identity!(field[1LU]);
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\druntime\import\core\atomic.d(542,9)
+*cast(T*)&val-=mod
 
 // expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(467,13)
 enum int schema = 0;
@@ -2945,61 +2881,235 @@ private ubyte _flDash_flZero_flSpace_flPlus_flHash_flEqual_flSeparator__bf;@prop
 @property bool flSeparator() @safe pure nothrow @nogc const { return (_flDash_flZero_flSpace_flPlus_flHash_flEqual_flSeparator__bf & 64U) != 0;}
 @property void flSeparator(bool v) @safe pure nothrow @nogc { if (v) _flDash_flZero_flSpace_flPlus_flHash_flEqual_flSeparator__bf |= 64U;else _flDash_flZero_flSpace_flPlus_flHash_flEqual_flSeparator__bf &= cast(typeof(_flDash_flZero_flSpace_flPlus_flHash_flEqual_flSeparator__bf))(-1-cast(typeof(_flDash_flZero_flSpace_flPlus_flHash_flEqual_flSeparator__bf))64U);}
 
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(452,16)
+cast(T)a < cast(T) b
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(222,13)
+alias a = __a ;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(223,13)
+alias b = __b ;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(224,20)
+a == b
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(467,13)
+enum int data = 0;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(467,13)
+enum int count = 0;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(654,9)
+alias _0LU = Identity!(field[0LU]);alias data = _0LU;alias _1LU = Identity!(field[1LU]);alias count = _1LU;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(654,9)
+alias _0LU = Identity!(field[0LU]);alias _1LU = Identity!(field[1LU]);
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
-// expansion at source\geometry\surface.d(21,5)
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs < rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs < rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs == rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs < rhs
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
+lhs < rhs
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(222,13)
+alias a = __a ;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(223,13)
+alias b = __b ;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(224,20)
+a == b
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(222,13)
+alias a = __a ;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(223,13)
+alias b = __b ;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(224,20)
+a == b
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\internal\memory.d(40,18)
+onOutOfMemoryError();
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(222,13)
+alias a = __a ;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(223,13)
+alias b = __b ;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(224,20)
+a == b
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(222,13)
+alias a = __a ;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(223,13)
+alias b = __b ;
+
+// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\functional.d(224,20)
+a == b
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at source\geometry\surface.d(21,9)
 ulong[2LU] offsets;
 
-// expansion at source\geometry\surface.d(22,5)
+// expansion at source\geometry\surface.d(22,9)
 offsets[0] = 0;
 
-// expansion at source\geometry\surface.d(26,7)
+// expansion at source\geometry\surface.d(26,13)
 glEnableVertexAttribArray(0LU);
 
-// expansion at source\geometry\surface.d(27,7)
-glVertexAttribPointer(0LU, 3LU, GL_FLOAT, GL_FALSE, 20LU, cast(GLvoid*)(GLfloat.sizeof*offsets[idx]));
-
-// expansion at source\geometry\surface.d(29,9)
-offsets[1LU] = offsets[0LU] + 3LU;
-
-// expansion at source\geometry\surface.d(26,7)
-glEnableVertexAttribArray(1LU);
-
-// expansion at source\geometry\surface.d(27,7)
-glVertexAttribPointer(1LU, 2LU, GL_FLOAT, GL_FALSE, 20LU, cast(GLvoid*)(GLfloat.sizeof*offsets[idx]));
-
-// expansion at source\geometry\surface.d(39,7)
-glDisableVertexAttribArray(0LU);
-
-// expansion at source\geometry\surface.d(39,7)
-glDisableVertexAttribArray(1LU);
-
-// expansion at source\geometry\surface.d(21,5)
-ulong[2LU] offsets;
-
-// expansion at source\geometry\surface.d(22,5)
-offsets[0] = 0;
-
-// expansion at source\geometry\surface.d(26,7)
-glEnableVertexAttribArray(0LU);
-
-// expansion at source\geometry\surface.d(27,7)
+// expansion at source\geometry\surface.d(27,13)
 glVertexAttribPointer(0LU, 3LU, GL_FLOAT, GL_FALSE, 24LU, cast(GLvoid*)(GLfloat.sizeof*offsets[idx]));
 
-// expansion at source\geometry\surface.d(29,9)
+// expansion at source\geometry\surface.d(29,17)
 offsets[1LU] = offsets[0LU] + 3LU;
 
-// expansion at source\geometry\surface.d(26,7)
+// expansion at source\geometry\surface.d(26,13)
 glEnableVertexAttribArray(1LU);
 
-// expansion at source\geometry\surface.d(27,7)
+// expansion at source\geometry\surface.d(27,13)
 glVertexAttribPointer(1LU, 3LU, GL_FLOAT, GL_FALSE, 24LU, cast(GLvoid*)(GLfloat.sizeof*offsets[idx]));
 
-// expansion at source\geometry\surface.d(39,7)
+// expansion at source\geometry\surface.d(39,13)
 glDisableVertexAttribArray(0LU);
 
-// expansion at source\geometry\surface.d(39,7)
+// expansion at source\geometry\surface.d(39,13)
+glDisableVertexAttribArray(1LU);
+
+// expansion at source\geometry\surface.d(21,9)
+ulong[3LU] offsets;
+
+// expansion at source\geometry\surface.d(22,9)
+offsets[0] = 0;
+
+// expansion at source\geometry\surface.d(26,13)
+glEnableVertexAttribArray(0LU);
+
+// expansion at source\geometry\surface.d(27,13)
+glVertexAttribPointer(0LU, 3LU, GL_FLOAT, GL_FALSE, 32LU, cast(GLvoid*)(GLfloat.sizeof*offsets[idx]));
+
+// expansion at source\geometry\surface.d(29,17)
+offsets[1LU] = offsets[0LU] + 3LU;
+
+// expansion at source\geometry\surface.d(26,13)
+glEnableVertexAttribArray(1LU);
+
+// expansion at source\geometry\surface.d(27,13)
+glVertexAttribPointer(1LU, 3LU, GL_FLOAT, GL_FALSE, 32LU, cast(GLvoid*)(GLfloat.sizeof*offsets[idx]));
+
+// expansion at source\geometry\surface.d(29,17)
+offsets[2LU] = offsets[1LU] + 3LU;
+
+// expansion at source\geometry\surface.d(26,13)
+glEnableVertexAttribArray(2LU);
+
+// expansion at source\geometry\surface.d(27,13)
+glVertexAttribPointer(2LU, 2LU, GL_FLOAT, GL_FALSE, 32LU, cast(GLvoid*)(GLfloat.sizeof*offsets[idx]));
+
+// expansion at source\geometry\surface.d(21,9)
+ulong[2LU] offsets;
+
+// expansion at source\geometry\surface.d(22,9)
+offsets[0] = 0;
+
+// expansion at source\geometry\surface.d(26,13)
+glEnableVertexAttribArray(0LU);
+
+// expansion at source\geometry\surface.d(27,13)
+glVertexAttribPointer(0LU, 3LU, GL_FLOAT, GL_FALSE, 20LU, cast(GLvoid*)(GLfloat.sizeof*offsets[idx]));
+
+// expansion at source\geometry\surface.d(29,17)
+offsets[1LU] = offsets[0LU] + 3LU;
+
+// expansion at source\geometry\surface.d(26,13)
+glEnableVertexAttribArray(1LU);
+
+// expansion at source\geometry\surface.d(27,13)
+glVertexAttribPointer(1LU, 2LU, GL_FLOAT, GL_FALSE, 20LU, cast(GLvoid*)(GLfloat.sizeof*offsets[idx]));
+
+// expansion at source\geometry\surface.d(39,13)
+glDisableVertexAttribArray(0LU);
+
+// expansion at source\geometry\surface.d(39,13)
 glDisableVertexAttribArray(1LU);
 
 // expansion at
@@ -3020,6 +3130,21 @@ glDisableVertexAttribArray(1LU);
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
 // expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
 lhs == rhs
 
@@ -3031,36 +3156,6 @@ lhs < rhs
 
 // expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
 lhs < rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs < rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs < rhs
-
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
@@ -3085,27 +3180,4 @@ lhs < rhs
 
 // expansion at C:\D\dmd2\windows\bin64\..\..\src\druntime\import\core\atomic.d(542,9)
 *cast(T*)&val+=mod
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\druntime\import\core\internal\atomic.d(264,13)
-
-                asm pure nothrow @nogc @trusted
-                {
-                    naked;
-                    lock; xadd[RDX], ECX;
-                    mov EAX, ECX;
-                    ret;
-                }
-
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs == rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs < rhs
-
-// expansion at C:\D\dmd2\windows\bin64\..\..\src\phobos\std\typecons.d(539,31)
-lhs < rhs
 
