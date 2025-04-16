@@ -25,6 +25,7 @@ class Pipeline{
     /// Create a shader and store it in our pipelines map
     GLuint CompilePipeline(string pipelineName, string vertexShaderSourceFilename, string fragmentShaderSourceFilename){
         // Local nested function -- not meant for otherwise calling freely
+        writeln("Compiling shader pipeline: ", pipelineName);
         void CheckShaderError(GLuint shaderObject){
             // Retrieve the result of our compilation
             int result;
@@ -59,6 +60,7 @@ class Pipeline{
         // Compile fragment shader
         fragmentShader= glCreateShader(GL_FRAGMENT_SHADER);
         const char* fSource = fragmentSource.ptr;
+
         glShaderSource(fragmentShader, 1, &fSource, null);
         glCompileShader(fragmentShader);
         CheckShaderError(fragmentShader);

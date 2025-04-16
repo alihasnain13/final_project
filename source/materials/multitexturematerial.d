@@ -3,6 +3,7 @@ module multitexturematerial;
 
 import pipeline, materials, texture;
 import bindbc.opengl;
+import std.stdio;
 
 /// Represents a material with multiple textures
 class MultiTextureMaterial : IMaterial{
@@ -21,10 +22,10 @@ class MultiTextureMaterial : IMaterial{
         /// delegate to the base constructor to do initialization
         super(pipelineName);
 
-        mTexture1 = new Texture(textureFileName1,256,256);
-        mTexture2 = new Texture(textureFileName2,256,256);
-        mTexture3 = new Texture(textureFileName3,256,256);
-        mTexture4 = new Texture(textureFileName4,256,256);
+        mTexture1 = new Texture(textureFileName1);
+        mTexture2 = new Texture(textureFileName2);
+        mTexture3 = new Texture(textureFileName3);
+        mTexture4 = new Texture(textureFileName4);
     }
 
     /// TextureMaterial.Update()

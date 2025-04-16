@@ -26,7 +26,7 @@ class Uniform{
     /// Add a new uniform with a specific type
     this(string uniformname, string datatype, void* data)
 		{
-			if(datatype=="vec2" || datatype=="vec3" || datatype=="mat4"){
+			if(datatype=="vec2" || datatype=="vec3" || datatype=="mat4" || datatype=="float" || datatype=="sampler2D"){
         mUniformName    = uniformname;
         mDataType       = datatype;
         mData           = data;
@@ -54,7 +54,26 @@ class Uniform{
     }
     /// Set data for an already created uniform.
     void Set(int data){
+        
         mPlainDataType  = data;
+
+        // *** ADD SPECIAL HANDLING FOR SAMPLERS ***
+        if (mDataType == "sampler2D") {
+             // If this uniform is a sampler, the 'data' integer IS the texture unit.
+             // Upload it immediately using glUniform1i.
+             // Ensure location is valid (should be cached by CheckAndCacheUniform)
+             if (mCachedUniformLocation != -1) {
+                  // writeln("Setting sampler '", mUniformName, "' (Loc: ", mCachedUniformLocation, ") to Texture Unit: ", data); // Optional Debug
+                  glUniform1i(mCachedUniformLocation, data);
+             } else {
+                 // This shouldn't happen if CheckAndCacheUniform ran successfully
+                 // but good to be defensive.
+                 writeln("Warning: Attempting to Set sampler '", mUniformName, "' but location is not cached (-1).");
+             }
+             // We DO NOT want Transfer() to be called later for samplers typically,
+             // as the value is set here. The current Transfer() already returns for sampler2D.
+        }
+
     }
     /// Set data for an already created uniform.
     void Set(float data){
@@ -76,7 +95,11 @@ class Uniform{
         }else if(mDataType=="mat4"){
             mat4* m = cast(mat4*)mData;
             glUniformMatrix4fv(mCachedUniformLocation, 1, GL_TRUE, m.DataPtr());
-        }else{
+        }
+        else if (mDataType=="sampler2D") {
+            return;
+        }
+        else{
             assert(0,"unsupported type, perhaps add more types in 'Transfer'?");
         }
     }

@@ -4,12 +4,13 @@ import std.stdio;
 import core;
 import mesh, linear, scene, materials, geometry;
 import platform;
+import helper_modules;
 
 import bindbc.sdl;
 import bindbc.opengl;
 import std.math;
+import std.string : fromStringz;
 
-// Import your light marker (cube) surface.
 
 struct GraphicsApp {
     bool mGameIsRunning = true;
@@ -33,7 +34,6 @@ struct GraphicsApp {
     // New: Persistent object color.
     vec3 mObjectColor = vec3(1.0f, 1.0f, 1.0f);
 
-
     /// Constructor: Setup OpenGL and other libraries.
     this(int major_ogl_version, int minor_ogl_version) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version);
@@ -45,24 +45,38 @@ struct GraphicsApp {
         mWindow = SDL_CreateWindow("dlang - OpenGL 4+ Graphics Framework",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            640, 480,
+            1280, 720,
             SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
-        mContext = SDL_GL_CreateContext(mWindow);
-        auto retVal = LoadOpenGLLib();
-        GetOpenGLVersionInfo();
 
-        mRenderer = new Renderer(mWindow, 640, 480);
+        // if (mWindow is null) {
+        //      throw new Exception("Failed to create SDL window: " ~ fromStringz(SDL_GetError()));
+        // }
+        mContext = SDL_GL_CreateContext(mWindow);
+        //  if (mContext is null) {
+        //      throw new Exception("Failed to create OpenGL context: " ~ fromStringz(SDL_GetError()));
+        // }
+        auto retVal = LoadOpenGLLib(); // From opengl_abstraction
+        // if (!retVal) {
+        //      throw new Exception("Failed to load OpenGL functions.");
+        // }
+        GetOpenGLVersionInfo(); // From opengl_abstraction
+
+        // Assuming Renderer constructor takes window and dimensions
+        int w, h;
+        SDL_GetWindowSize(mWindow, &w, &h);
+        mRenderer = new Renderer(mWindow, w, h); // Pass actual size
         mCamera = new Camera();
         mSceneTree = new SceneTree("root");
 
-        // initialize persistent light and material properties
-        mLightPos = vec3(1.0f, 1.0f, 1.0f);
+        // --- Initialize Light/Material Defaults (Keep as is or adjust) ---
+        mLightPos = vec3(50.0f, 50.0f, 50.0f); // Move light further out for terrain
         mLightColor = vec3(1.0f, 1.0f, 1.0f);
-        mMaterialAmbient = vec3(0.5f, 0.5f, 0.5f);
-        mMaterialDiffuse = vec3(0.8f, 0.8f, 0.8f);
-        mMaterialSpecular = vec3(0.5f, 0.5f, 0.5f);
-        mShininess = 32.0f;
+        // Material properties for the terrain (if using BasicMaterial)
+        mMaterialAmbient = vec3(0.2f, 0.2f, 0.2f);
+        mMaterialDiffuse = vec3(0.7f, 0.7f, 0.7f);
+        mMaterialSpecular = vec3(0.1f, 0.1f, 0.1f); // Terrain usually not very shiny
+        mShininess = 4.0f;
     }
 
     /// Destructor.
@@ -108,85 +122,98 @@ struct GraphicsApp {
 
     /// Setup the scene.
     void SetupScene() {
-        // Create the pipeline and material for the bunny.
-        Pipeline basicPipeline = new Pipeline("basic", "./pipelines/basic/basic.vert", "./pipelines/basic/basic.frag");
-        IMaterial basicMaterial = new BasicMaterial("basic");
+        writeln("--- Setting up scene ---");
 
-        // // Load the bunny OBJ.
-        // ISurface obj = new SurfaceOBJ("./assets/bunny_centered.obj");
-        // MeshNode bunnyNode = new MeshNode("bunny", obj, basicMaterial);
-        // mSceneTree.GetRootNode().AddChildSceneNode(bunnyNode);
+        // --- 1. Create Pipelines ---
+        // *** Create pipeline for the unlit terrain shaders ***
+        // Ensure these paths point to the terrain.vert and terrain.frag we defined earlier
+        string terrainVertPath = "./pipelines/terrain_std/terrain_std.vert";
+        string terrainFragPath = "./pipelines/terrain_std/terrain_std.frag";
+        Pipeline terrainPipeline = new Pipeline("terrain", terrainVertPath, terrainFragPath);
+        writeln("Terrain pipeline created.");
 
-		// // auto matData = parseMTL("./assets/bunny_centered_247_faces.mtl", "None");
-		// mObjectColor = vec3(1.0f, 1.0f, 1.0f);
-		// // NOTE: The material properties are set in the constructor of the BasicMaterial class, I'm not pulling from the MTL file here! (except the color)
-
-        // select P3 heightmap file
-        string heightmapFile = "./assets/heightmap.ppm"; // Or heightmap.ppm
-        // Choose scaling (XZ scale, Y scale)
-        float terrainXZScale = 20.0f;
-        float terrainYScale = 4.0f; // Adjust height exaggeration
-        ISurface terrainSurface = new SurfaceTerrain(heightmapFile, terrainXZScale, terrainYScale);
-
-        MeshNode terrainNode = new MeshNode("terrain", terrainSurface, basicMaterial);
-
-        terrainNode.mModelMatrix = MatrixMakeTranslation(vec3(0.0f, -2.0f, 0.0f)); // Example
-        mObjectColor = vec3(0.3f, 0.6f, 0.2f);
-
-        // Add lighting and material uniforms using persistent member variables.
-        basicMaterial.AddUniform(new Uniform("uLightPos", "vec3", &mLightPos));
-        basicMaterial.AddUniform(new Uniform("uLightColor", "vec3", &mLightColor));
-        basicMaterial.AddUniform(new Uniform("uViewPos", "vec3", mCamera.mEyePosition.DataPtr()));
-        basicMaterial.AddUniform(new Uniform("uMaterialAmbient", "vec3", &mMaterialAmbient));
-        basicMaterial.AddUniform(new Uniform("uMaterialDiffuse", "vec3", &mMaterialDiffuse));
-        basicMaterial.AddUniform(new Uniform("uMaterialSpecular", "vec3", &mMaterialSpecular));
-        basicMaterial.AddUniform(new Uniform("uShininess", mShininess));
-
-        // Add transformation uniforms.
-        basicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        basicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        basicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
-        // Add the object inherent color uniform.
-        basicMaterial.AddUniform(new Uniform("uObjectColor", "vec3", &mObjectColor));
-
-        // // --- Create a light marker for debugging ---
-        // ISurface lightMarkerSurface = new SurfaceCube();
-        // // Use the same pipeline ("basic") for the light marker material.
-        // IMaterial lightMarkerMaterial = new BasicMaterial("basic");
-        // lightMarkerMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        // lightMarkerMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        // lightMarkerMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
-		// vec3 whiteColor = vec3(1.0f, 1.0f, 1.0f);
-		// lightMarkerMaterial.AddUniform(new Uniform("uObjectColor", "vec3", &whiteColor));
+        // Keep basic pipeline ONLY if needed elsewhere, otherwise remove.
+        Pipeline basicPipeline = new Pipeline("basic", "./pipelines/terrain_std/terrain_std.vert", "./pipelines/terrain_std/terrain_std.frag");
 
 
-        // MeshNode lightMarkerNode = new MeshNode("light_marker", lightMarkerSurface, lightMarkerMaterial);
-        // mSceneTree.GetRootNode().AddChildSceneNode(lightMarkerNode);
+        // --- 2. Create Terrain Surface ---
+        // (This part remains the same)
+        writeln("Creating terrain surface...");
+        string heightmapPath = "./assets/custommap.png"; // *** ENSURE CORRECT PATH ***
+        ISurface terrainSurface;
+        try {
+            terrainSurface = new SurfaceTerrain(heightmapPath);
+        } catch (Exception e) {
+            stderr.writeln("CRITICAL: Failed to initialize terrain in SetupScene.");
+            stderr.writeln(e.msg);
+            mGameIsRunning = false;
+            return;
+        }
+        writeln("Terrain surface created.");
+
+        // --- 3. Create Terrain Material (MultiTexture) ---
+        // *** Use MultiTextureMaterial with the "terrain" pipeline ***
+        // *** Specify paths to your 4 terrain textures ***
+        string texLayer1 = "./assets/dirt.ppm";    // <<< CHECK THIS LINE!!!
+        string texLayer2 = "./assets/grass.ppm";   // This one seems correct based on logs
+        string texLayer3 = "./assets/rock.ppm";    // This one seems correct based on logs
+        string texLayer4 = "./assets/snow.ppm";    // This one seems correct based on logs
+
+
+        IMaterial terrainMaterial; // Use the interface type
+        try {
+             // Ensure MultiTextureMaterial handles potential texture load errors gracefully
+             terrainMaterial = new MultiTextureMaterial("terrain", texLayer1, texLayer2, texLayer3, texLayer4);
+        } catch (Exception e) { // Assuming MultiTextureMaterial might throw if textures fail
+             stderr.writeln("CRITICAL: Failed to create terrain material (check texture paths/loading).");
+             stderr.writeln(e.msg);
+             mGameIsRunning = false;
+             // Clean up surface? Depends if destructor handles partial failure
+             // destroy(terrainSurface); // Maybe?
+             return;
+        }
+        writeln("Terrain material created.");
+
+
+        // --- 4. Add REQUIRED Uniforms to Terrain Material ---
+        // Add ONLY the uniforms needed by terrain.vert and terrain.frag
+        // Samplers are needed for the material to function, even if set internally
+        terrainMaterial.AddUniform(new Uniform("sampler1", "sampler2D", null));
+        terrainMaterial.AddUniform(new Uniform("sampler2", "sampler2D", null));
+        terrainMaterial.AddUniform(new Uniform("sampler3", "sampler2D", null));
+        terrainMaterial.AddUniform(new Uniform("sampler4", "sampler2D", null));
+
+        // Add transformation uniforms used by terrain.vert
+        terrainMaterial.AddUniform(new Uniform("uModel", "mat4", null)); // Set per-node during render
+        terrainMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        terrainMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+        // *** IMPORTANT: DO NOT ADD LIGHTING/OTHER UNUSED UNIFORMS HERE ***
+        // terrainMaterial.AddUniform(new Uniform("uLightPos", "vec3", &mLightPos)); // REMOVED
+         terrainMaterial.AddUniform(new Uniform("uLightColor", "vec3", &mLightColor)); // REMOVED
+        // terrainMaterial.AddUniform(new Uniform("uViewPos", "vec3", mCamera.mEyePosition.DataPtr())); // REMOVED
+         terrainMaterial.AddUniform(new Uniform("uMaterialAmbient", "vec3", &mMaterialAmbient)); // REMOVED
+        // terrainMaterial.AddUniform(new Uniform("uMaterialDiffuse", "vec3", &mMaterialDiffuse)); // REMOVED
+        // terrainMaterial.AddUniform(new Uniform("uMaterialSpecular", "vec3", &mMaterialSpecular)); // REMOVED
+        // terrainMaterial.AddUniform(new Uniform("uShininess", "float", &mShininess)); // REMOVED
+
+        writeln("Terrain material uniforms added.");
+
+
+        // --- 5. Create Terrain Mesh Node ---
+        // *** Use the new terrainMaterial ***
+        MeshNode terrainNode = new MeshNode("terrain", terrainSurface, terrainMaterial);
+        mSceneTree.GetRootNode().AddChildSceneNode(terrainNode);
+        writeln("Terrain node added to scene tree.");
+
+
+        writeln("--- Scene setup finished ---");
     }
 
     /// Update game state.
     void Update() {
-        // Animate the bunny.
-        // static float yRotation = 0.0f;
-        // yRotation += 0.01f;
-        // MeshNode bunnyNode = cast(MeshNode) mSceneTree.FindNode("bunny");
-        // bunnyNode.mModelMatrix = MatrixMakeTranslation(vec3(0.0f, 0.0f, -1.0f))
-        //                         * MatrixMakeYRotation(yRotation);
-
-        // the light should ideally 'oprbit' around the bunny in a 3d plane
-
-        static float theta = 0.0f;  // azimuth angle
-        static float phi = 0.0f;    // polar angle
-		// NOTE: update to change speed and orbit
-        theta += 0.01f;
-        phi += 0.008f;
-        float r = 30.0f;
-        vec3 bunnyCenter = vec3(0.0f, 0.0f, 0.0f); // centered around the bunny
-        mLightPos.x = bunnyCenter.x + r * sin(phi) * cos(theta);
-        mLightPos.y = bunnyCenter.y + r * cos(phi);
-        mLightPos.z = bunnyCenter.z + r * sin(phi) * sin(theta);
+        // update camera
+        mCamera.UpdateViewMatrix();
     }
 
     /// Render the scene.

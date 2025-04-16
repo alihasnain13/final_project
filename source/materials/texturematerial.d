@@ -13,7 +13,7 @@ class TextureMaterial : IMaterial{
 				/// delegate to the base constructor to do initialization
 				super(pipelineName);
 
-				mTexture1 = new Texture(textureFileName,256,256);
+				mTexture1 = new Texture(textureFileName);
     }
 
     /// TextureMaterial.Update()
