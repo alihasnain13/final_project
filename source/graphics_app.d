@@ -189,12 +189,12 @@ struct GraphicsApp {
         terrainMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
         // *** IMPORTANT: DO NOT ADD LIGHTING/OTHER UNUSED UNIFORMS HERE ***
-        // terrainMaterial.AddUniform(new Uniform("uLightPos", "vec3", &mLightPos)); // REMOVED
+         terrainMaterial.AddUniform(new Uniform("uLightPos", "vec3", &mLightPos)); // REMOVED
          terrainMaterial.AddUniform(new Uniform("uLightColor", "vec3", &mLightColor)); // REMOVED
-        // terrainMaterial.AddUniform(new Uniform("uViewPos", "vec3", mCamera.mEyePosition.DataPtr())); // REMOVED
+         terrainMaterial.AddUniform(new Uniform("uViewPos", "vec3", mCamera.mEyePosition.DataPtr())); // REMOVED
          terrainMaterial.AddUniform(new Uniform("uMaterialAmbient", "vec3", &mMaterialAmbient)); // REMOVED
-        // terrainMaterial.AddUniform(new Uniform("uMaterialDiffuse", "vec3", &mMaterialDiffuse)); // REMOVED
-        // terrainMaterial.AddUniform(new Uniform("uMaterialSpecular", "vec3", &mMaterialSpecular)); // REMOVED
+         terrainMaterial.AddUniform(new Uniform("uMaterialDiffuse", "vec3", &mMaterialDiffuse)); // REMOVED
+         terrainMaterial.AddUniform(new Uniform("uMaterialSpecular", "vec3", &mMaterialSpecular)); // REMOVED
         // terrainMaterial.AddUniform(new Uniform("uShininess", "float", &mShininess)); // REMOVED
 
         writeln("Terrain material uniforms added.");
