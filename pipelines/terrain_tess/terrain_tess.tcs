@@ -1,0 +1,35 @@
+#version 410 core
+
+// Define number of control points per patch output by TCS & input to TES
+layout (vertices = 4) out; // We're working with Quads
+
+// Input from Vertex Shader (arrays sized by input patch = 4)
+in vec3 tcPosition[];
+in vec2 tcTexCoord[];
+
+// Output to Tessellation Evaluation Shader (TES)
+out vec3 tePosition[];
+out vec2 teTexCoord[];
+
+// --- Fixed Tessellation Levels ---
+// Controls subdivision amount. Higher = more detail, more GPU work.
+// Start lower (e.g., 8) for initial testing, increase later.
+const float TESS_LEVEL = 8.0;
+
+void main()
+{
+    // Pass control point attributes through to the TES
+    tePosition[gl_InvocationID] = tcPosition[gl_InvocationID];
+    teTexCoord[gl_InvocationID] = tcTexCoord[gl_InvocationID];
+
+    // Set Tessellation Levels (executed once per patch by invocation 0)
+    if (gl_InvocationID == 0)
+    {
+        gl_TessLevelOuter[0] = TESS_LEVEL; // Bottom edge subdivision
+        gl_TessLevelOuter[1] = TESS_LEVEL; // Left edge subdivision
+        gl_TessLevelOuter[2] = TESS_LEVEL; // Top edge subdivision
+        gl_TessLevelOuter[3] = TESS_LEVEL; // Right edge subdivision
+        gl_TessLevelInner[0] = TESS_LEVEL; // U direction subdivision (inside)
+        gl_TessLevelInner[1] = TESS_LEVEL; // V direction subdivision (inside)
+    }
+}
