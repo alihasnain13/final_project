@@ -9,20 +9,20 @@ struct VertexFormat3F3F{
 
 /// A struct representing for x,y,z and s,t
 struct VertexFormat3F2F{
-	float[3] aPostition;
+	float[3] aPosition;
 	float[2] aTextureCoord;
 }
 
 /// A struct representing for x,y,z, nx,ny,nz, and s,t
 struct VertexFormat3F3F2F{
-	float[3] aPostition;
+	float[3] aPosition;
 	float[3] aNormal;
 	float[2] aTextureCoord;
 }
 
 /// A struct representing for x,y,z, nx,ny,nz, bnx,bny,bnz, tnx,tny,tnz, and s,t
 struct VertexFormat3F3F2F3F3F{
-	float[3] aPostition;
+	float[3] aPosition;
 	float[3] aNormal;
 	float[2] aTextureCoord;
 	float[3] aBiNormal;

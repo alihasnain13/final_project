@@ -4,15 +4,22 @@
 	],
 	"copyright": "Copyright © 2025, mike",
 	"dependencies": {
+		"bindbc-loader": "1.1.5",
 		"bindbc-opengl": "~>1.1.1",
-		"bindbc-sdl": "~>1.5.1"
+		"bindbc-sdl": "~>1.5.1",
+		"gamut": "~>3.3.1"
 	},
-    "versions":[
-        "GL_41"
-    ],
-	"dflags":["-mixin=mixin.txt"],
-    "stringImportPaths":["."],
 	"description": "A minimal D application.",
+	"dflags": [
+		"-mixin=mixin.txt"
+	],
 	"license": "proprietary",
-	"name": "prog"
+	"name": "prog",
+	"stringImportPaths": [
+		"."
+	],
+	"versions": [
+		"GL_41",
+		"SDL_Image_2_0"
+	]
 }

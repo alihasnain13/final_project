@@ -1,56 +1,67 @@
 #version 410 core
 
-in vec2 vTexCoords;
-in vec4 vWorldCoords;
+// Inputs from Vertex Shader
+in vec2 vTexCoord;  // Texture coordinates from vertex shader
+in vec3 vWorldPos;  // World position from vertex shader (Y is height)
 
+// Texture Samplers (needs 4 textures bound via MultiTextureMaterial)
+// These names MUST match the names used in MultiTextureMaterial.Update()
+uniform sampler2D sampler1; // e.g., Dirt/Low Ground texture
+uniform sampler2D sampler2; // e.g., Grass texture
+uniform sampler2D sampler3; // e.g., Rock texture
+uniform sampler2D sampler4; // e.g., Snow/High Ground texture
+
+// Output color for the fragment
 out vec4 fragColor;
 
-uniform sampler2D sampler1;
-uniform sampler2D sampler2;
-uniform sampler2D sampler3;
-uniform sampler2D sampler4;
+// --- Simple Height-Based Blending Parameters ---
+// Adjust these world-space Y coordinate thresholds based on your terrain's
+// height range (set by yScale/yShift in SurfaceTerrain) and desired look.
+const float heightLayer1 = -2.0;  // Upper Y limit for Layer 1 (e.g., Dirt)
+const float heightLayer2 = 5.0;   // Upper Y limit for Layer 2 (e.g., Grass)
+const float heightLayer3 = 15.0;  // Upper Y limit for Layer 3 (e.g., Rock)
+                                  // Layer 4 (e.g., Snow) covers everything above heightLayer3
 
-vec3 GetColor() {
-    // Set the maximum height to match your geometry
-    float maxHeight = 85.0;
-    // Normalize the height (assuming vWorldCoords.y is in [0, maxHeight])
-    float normHeight = clamp(vWorldCoords.y / maxHeight, 0.0, 1.0);
+// Controls how smoothly textures blend at the thresholds (larger value = smoother)
+// Should generally be positive.
+const float blendSharpness = 0.1; // Smaller value = sharper transition (like 0.05)
+                                  // Larger value = smoother transition (like 0.2)
 
-    // Sample each texture
-    vec3 tex1Color = texture(sampler1, vTexCoords).rgb;
-    vec3 tex2Color = texture(sampler2, vTexCoords).rgb;
-    vec3 tex3Color = texture(sampler3, vTexCoords).rgb;
-    vec3 tex4Color = texture(sampler4, vTexCoords).rgb;
-
-    vec3 color;
-
-    // Define narrow blending bands:
-    if(normHeight < 0.20) {
-        // Below 0.20: use texture 1
-        color = tex1Color;
-    } else if(normHeight < 0.33) {
-        // Between 0.20 and 0.33: blend from texture 1 to texture 2
-        float factor = smoothstep(0.20, 0.33, normHeight);
-        color = mix(tex1Color, tex2Color, factor);
-    } else if(normHeight < 0.66) {
-        // From 0.33 to 0.66: use texture 2
-        color = tex2Color;
-    } else if(normHeight < 0.75) {
-        // Between 0.66 and 0.80: blend from texture 2 to texture 3
-        float factor = smoothstep(0.66, 0.75, normHeight);
-        color = mix(tex2Color, tex3Color, factor);
-    } else if(normHeight < 0.80) {
-        // From 0.80 to 0.93: use texture 3
-        color = tex3Color;
-    } else {
-        // Between 0.93 and 1.0: blend from texture 3 to texture 4
-        float factor = smoothstep(0.80, 1.0, normHeight);
-        color = mix(tex3Color, tex4Color, factor);
-    }
-    
-    return color;
+// Helper function for smooth blending based on height
+// Returns a value between 0 and 1 indicating the blend factor towards the 'upper' texture.
+float getHeightBlendFactor(float lowerBound, float height) {
+    // Scale the height difference based on sharpness
+    // Positive value makes upper texture appear, negative makes lower texture appear
+    float scale = (height - lowerBound) / blendSharpness;
+    // Clamp the result between 0 and 1
+    return clamp(scale, 0.0, 1.0);
 }
 
-void main() {
-    fragColor = vec4(GetColor(), 1.0);
+
+void main()
+{
+    // Sample all potential textures based on the vertex texture coordinates
+    vec3 colorLayer1 = texture(sampler1, vTexCoord).rgb;
+    vec3 colorLayer2 = texture(sampler2, vTexCoord).rgb;
+    vec3 colorLayer3 = texture(sampler3, vTexCoord).rgb;
+    vec3 colorLayer4 = texture(sampler4, vTexCoord).rgb;
+
+    // Calculate blend factors based on world height (vWorldPos.y)
+    // These factors determine how much of the 'next' layer to mix in.
+    float blendFactor12 = getHeightBlendFactor(heightLayer1, vWorldPos.y);
+    float blendFactor23 = getHeightBlendFactor(heightLayer2, vWorldPos.y);
+    float blendFactor34 = getHeightBlendFactor(heightLayer3, vWorldPos.y);
+
+    // Perform linear interpolation (mix) between layers
+    // Start with the base layer (Layer 1)
+    vec3 finalColor = colorLayer1;
+    // Mix in Layer 2 based on blendFactor12
+    finalColor = mix(finalColor, colorLayer2, blendFactor12);
+    // Mix in Layer 3 based on blendFactor23
+    finalColor = mix(finalColor, colorLayer3, blendFactor23);
+    // Mix in Layer 4 based on blendFactor34
+    finalColor = mix(finalColor, colorLayer4, blendFactor34);
+
+    // Output the final blended color (no lighting) with full alpha
+    fragColor = vec4(finalColor, 1.0);
 }

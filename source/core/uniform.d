@@ -26,7 +26,7 @@ class Uniform{
     /// Add a new uniform with a specific type
     this(string uniformname, string datatype, void* data)
 		{
-			if(datatype=="vec2" || datatype=="vec3" || datatype=="mat4"){
+			if(datatype=="vec2" || datatype=="vec3" || datatype=="mat4" || datatype=="float" || datatype=="sampler2D"){
         mUniformName    = uniformname;
         mDataType       = datatype;
         mData           = data;
@@ -54,7 +54,26 @@ class Uniform{
     }
     /// Set data for an already created uniform.
     void Set(int data){
+        
         mPlainDataType  = data;
+
+        // *** ADD SPECIAL HANDLING FOR SAMPLERS ***
+        if (mDataType == "sampler2D") {
+             // If this uniform is a sampler, the 'data' integer IS the texture unit.
+             // Upload it immediately using glUniform1i.
+             // Ensure location is valid (should be cached by CheckAndCacheUniform)
+             if (mCachedUniformLocation != -1) {
+                  // writeln("Setting sampler '", mUniformName, "' (Loc: ", mCachedUniformLocation, ") to Texture Unit: ", data); // Optional Debug
+                  glUniform1i(mCachedUniformLocation, data);
+             } else {
+                 // This shouldn't happen if CheckAndCacheUniform ran successfully
+                 // but good to be defensive.
+                 writeln("Warning: Attempting to Set sampler '", mUniformName, "' but location is not cached (-1).");
+             }
+             // We DO NOT want Transfer() to be called later for samplers typically,
+             // as the value is set here. The current Transfer() already returns for sampler2D.
+        }
+
     }
     /// Set data for an already created uniform.
     void Set(float data){
@@ -66,7 +85,18 @@ class Uniform{
         if(mDataType=="int"){
             glUniform1i(mCachedUniformLocation,cast(int)mPlainDataType);        
         }else if(mDataType=="float"){
-            glUniform1f(mCachedUniformLocation,cast(float)mPlainDataType);        
+            // glUniform1f(mCachedUniformLocation,cast(float)mPlainDataType); 
+            // writeln("Transferring float Uniform: '", mUniformName, "' Loc: ", mCachedUniformLocation, " Value: ", val);  
+            // *** FIX: Calculate value, log it, then upload it ***
+            // 1. Calculate the float value from the stored double
+            float valueToTransfer = cast(float)mPlainDataType;
+
+            // 2. Log the value being transferred (using the variable)
+            writeln("Transferring float Uniform: '", mUniformName, "' Loc: ", mCachedUniformLocation, " Value: ", valueToTransfer);
+
+            // 3. Upload the value
+            glUniform1f(mCachedUniformLocation, valueToTransfer);
+            // *** END FIX ***     
         }else if(mDataType=="vec2"){
             vec2* v = cast(vec2*)mData;
             glUniform2f(mCachedUniformLocation,v.data[0],v.data[1]);
@@ -76,7 +106,11 @@ class Uniform{
         }else if(mDataType=="mat4"){
             mat4* m = cast(mat4*)mData;
             glUniformMatrix4fv(mCachedUniformLocation, 1, GL_TRUE, m.DataPtr());
-        }else{
+        }
+        else if (mDataType=="sampler2D") {
+            return;
+        }
+        else{
             assert(0,"unsupported type, perhaps add more types in 'Transfer'?");
         }
     }
