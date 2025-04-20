@@ -20,8 +20,8 @@ uniform mat4 uView;  // Camera's view matrix
 // Adjust these values based on your camera setup and desired detail falloff
 const int   MIN_TESS_LEVEL = 2;     // Min subdivision level for distant patches (must be >= 1)
 const int   MAX_TESS_LEVEL = 64;    // Max subdivision level for close patches (e.g., 16, 32, 64)
-const float MIN_DISTANCE   = 10.0;  // Distance at which MAX_TESS_LEVEL is applied
-const float MAX_DISTANCE   = 100.0; // Distance at which MIN_TESS_LEVEL is applied
+const float MIN_DISTANCE   = 100.0;  // Distance at which MAX_TESS_LEVEL is applied
+const float MAX_DISTANCE   = 400.0; // Distance at which MIN_TESS_LEVEL is applied
 
 void main()
 {

@@ -14,8 +14,6 @@ uniform float uYScale; // Should be ~250.0
 uniform float uYShift; // Should be ~-40.0
 
 // Output to Fragment Shader
-out float vNormalizedHeight; // Pass normalized height (0-1)
-
 out vec3  vWorldPos;    // world‐space position of this fragment
 out vec2  vTexCoord;     // UV for texture lookups
 
@@ -28,28 +26,20 @@ vec3 interpolateV3(vec3 v0, vec3 v1, vec3 v2, vec3 v3) {
 }
 
 void main() {
-    // 1. Interpolate TexCoord and base Position
+    // 1. interpolate basePos & UV
     vec2 texCoord = interpolateV2(teTexCoord[0], teTexCoord[1], teTexCoord[2], teTexCoord[3]);
     vec3 basePos  = interpolateV3(tePosition[0], tePosition[1], tePosition[2], tePosition[3]);
 
-    // 2. Sample Heightmap
+    // 2. sample height & build displaced pos
     float heightSample = texture(uHeightMap, texCoord).r;
+    float worldY       = heightSample * uYScale + uYShift;
+    vec3 worldPos      = vec3(basePos.x, worldY, basePos.z);
 
-    // 3. Calculate World Y (using correct scale/shift uniforms)
-    float worldY = heightSample * uYScale + uYShift; // e.g., 0.5 * 250.0 + (-40.0) = 125 - 40 = 85
+    // 3. feed the FS
+    vWorldPos  = worldPos;
+    vTexCoord  = texCoord;
+    // vNormalizedHeight = clamp((worldY - uYShift) / uYScale, 0.0, 1.0);
 
-    // 4. Calculate final World Position (used for gl_Position)
-    vec3 worldPos = vec3(basePos.x, worldY, basePos.z);
-
-    // --- DEBUG: Calculate and Pass Normalized Height ---
-    // Convert worldY back to an approximate 0.0-1.0 range
-    float normalizedHeight = 0.5; // Default value
-    if (uYScale > 0.001) { // Avoid divide by zero if scale is somehow zero
-        normalizedHeight = (worldY - uYShift) / uYScale;
-    }
-    vNormalizedHeight = clamp(normalizedHeight, 0.0, 1.0); // Ensure 0-1 range
-    // --- END DEBUG ---
-
-    // 5. Calculate final Clip Space Position using displaced worldPos
+    // 4. emit
     gl_Position = uProjection * uView * uModel * vec4(worldPos, 1.0);
 }

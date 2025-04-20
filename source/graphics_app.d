@@ -355,21 +355,30 @@ struct GraphicsApp {
         // Uniforms needed by BOTH pipelines/materials (MVP, surface samplers)
         IMaterial[2] mats = [mTerrainMaterialHiRes, mTerrainMaterialTess];
         foreach(mat; mats) {
-            // mat.AddUniform(new Uniform("sampler1", "sampler2D", null));
-            // mat.AddUniform(new Uniform("sampler2", "sampler2D", null));
-            // mat.AddUniform(new Uniform("sampler3", "sampler2D", null));
-            // mat.AddUniform(new Uniform("sampler4", "sampler2D", null));
+            mat.AddUniform(new Uniform("sampler1", "sampler2D", null));
+            mat.AddUniform(new Uniform("sampler2", "sampler2D", null));
+            mat.AddUniform(new Uniform("sampler3", "sampler2D", null));
+            mat.AddUniform(new Uniform("sampler4", "sampler2D", null));
+
             mat.AddUniform(new Uniform("uModel", "mat4", null));
             mat.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
             mat.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+            mat.AddUniform(new Uniform("uLightPos", "vec3", &mLightPos));
+            mat.AddUniform(new Uniform("uLightColor", "vec3", &mLightColor));
+            mat.AddUniform(new Uniform("uViewPos", "vec3", mCamera.mEyePosition.DataPtr()));
+            mat.AddUniform(new Uniform("uMaterialAmbient", "vec3", &mMaterialAmbient));
+            mat.AddUniform(new Uniform("uMaterialDiffuse", "vec3", &mMaterialDiffuse));
+            mat.AddUniform(new Uniform("uMaterialSpecular", "vec3", &mMaterialSpecular));
+            mat.AddUniform(new Uniform("uShininess", mShininess));
         }
 
         // Uniforms needed ONLY by standard (HiRes) LIT pipeline/material
         writeln("Adding lighting uniforms to HiRes material...");
-        mTerrainMaterialHiRes.AddUniform(new Uniform("sampler1", "sampler2D", null));
-        mTerrainMaterialHiRes.AddUniform(new Uniform("sampler2", "sampler2D", null));
-        mTerrainMaterialHiRes.AddUniform(new Uniform("sampler3", "sampler2D", null));
-        mTerrainMaterialHiRes.AddUniform(new Uniform("sampler4", "sampler2D", null));
+        // mTerrainMaterialHiRes.AddUniform(new Uniform("sampler1", "sampler2D", null));
+        // mTerrainMaterialHiRes.AddUniform(new Uniform("sampler2", "sampler2D", null));
+        // mTerrainMaterialHiRes.AddUniform(new Uniform("sampler3", "sampler2D", null));
+        // mTerrainMaterialHiRes.AddUniform(new Uniform("sampler4", "sampler2D", null));
         mTerrainMaterialHiRes.AddUniform(new Uniform("uLightPos", "vec3", &mLightPos));
         mTerrainMaterialHiRes.AddUniform(new Uniform("uLightColor", "vec3", &mLightColor));
         mTerrainMaterialHiRes.AddUniform(new Uniform("uViewPos", "vec3", mCamera.mEyePosition.DataPtr()));
