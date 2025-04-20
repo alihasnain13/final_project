@@ -40,8 +40,8 @@ class SurfaceTerrain : ISurface {
     float mYScale = 1.0f;
     float mYShift = 0.0f;
 
-    enum float TERRAIN_X_SCALE = 1.0f;
-    enum float TERRAIN_Z_SCALE = 1.0f;
+    enum float TERRAIN_X_SCALE = 2.0f;
+    enum float TERRAIN_Z_SCALE = 2.0f;
 
     // Define desired world height range ONCE for consistency
     enum float WORLD_MAX_HEIGHT = 210.0f;

@@ -180,6 +180,26 @@ struct vec3{
 				}
 				return result;
 		}
+
+		// Handles: float * vec3
+		vec3 opBinary(string op)(float scalar) const if (op == "*") {
+			// Assuming members x, y, z exist:
+			return vec3(this.x * scalar, this.y * scalar, this.z * scalar);
+
+			// OR, if you use a data array like data[3]:
+			// return vec3(this.data[0] * scalar, this.data[1] * scalar, this.data[2] * scalar);
+		}
+
+		// Handles: vec3 * float (makes multiplication commutative)
+		vec3 opBinaryRight(string op)(float scalar) const if (op == "*") {
+			// Usually the same implementation
+			return vec3(this.x * scalar, this.y * scalar, this.z * scalar);
+
+			// OR, if you use data[3]:
+			// return vec3(this.data[0] * scalar, this.data[1] * scalar, this.data[2] * scalar);
+		}
+
+
 		/// Built-in to retrieve vector in 'writeln'
 		/// e.g. writeln(vec3(1.0f,1.0f,1.0f));
 		string toString(){
@@ -407,6 +427,13 @@ float Dot(vec4 a, vec4 b){
 				//        writeln("Warning, may be operating on a point");
 		}
 		return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
+}
+
+float lengthSquared(vec2 a) {
+		return a.x*a.x + a.y*a.y;
+}
+float lengthSquared(vec3 a){
+		return a.x*a.x + a.y*a.y + a.z*a.z;
 }
 
 vec3 Cross(vec3 a, vec3 b){

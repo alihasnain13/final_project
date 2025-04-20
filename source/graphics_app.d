@@ -24,8 +24,9 @@ struct GraphicsApp {
     Camera mCamera;
     Renderer mRenderer;
 
-    ulong mLastFrameTime = 0; // Time stamp of the previous frame start (milliseconds)
-    float mDeltaTime = 0.0f;  // Time elapsed since last frame (seconds)
+    // --- Timing ---
+    ulong mLastFrameTime = 0;
+    float mDeltaTime = 0.0f;
 
     // --- Lighting & Default Material Properties ---
     // (Used primarily by the standard HiRes material)
@@ -52,11 +53,19 @@ struct GraphicsApp {
 
     // Shared Scale/Shift (Calculated once, used by TessellationMaterial via uniforms)
     float mTerrainYScale = 250.0f; // Height scale factor (for tessellation)
-
     float mTerrainYShift = -40.0f; // Height shift factor (for tessellation)
 
     // Reference to the single terrain node in the scene graph
     MeshNode mTerrainNode;
+
+    // --- Input State for Camera ---
+    float moveForward = 0.0f; // +1 / -1 based on key press
+    float moveRight = 0.0f;   // +1 / -1 based on key press
+    float moveUp = 0.0f;      // +1 / -1 based on key press
+    float mScrollDelta = 0.0f;// Accumulated scroll wheel value this frame
+    bool mIsPanning = false;  // Is middle mouse button held down?
+    int mLastPanX = 0;        // Last mouse X during pan
+    int mLastPanY = 0;        // Last mouse Y during pan
 
     /// Constructor: Setup OpenGL and other libraries.
     this(int major_ogl_version, int minor_ogl_version) {
@@ -70,7 +79,7 @@ struct GraphicsApp {
 
         mWindow = SDL_CreateWindow("D Terrain - Tessellation Toggle ('T')", // Updated title
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            1280, 720, // Window size
+            2560, 1080, // Window size
             SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
         if (mWindow is null) {
@@ -95,13 +104,10 @@ struct GraphicsApp {
         mCamera = new Camera();
         mSceneTree = new SceneTree("root");
 
-        // --- Initialize Light/Material Defaults ---
-        mLightPos = vec3(50.0f, 150.0f, 150.0f); // Position light higher/further
-        mLightColor = vec3(1.0f, 1.0f, 1.0f);
-        mMaterialAmbient = vec3(0.2f, 0.2f, 0.2f);
-        mMaterialDiffuse = vec3(0.6f, 0.6f, 0.6f);
-        mMaterialSpecular = vec3(0.1f, 0.1f, 0.1f);
-        mShininess = 8.0f;
+        // --- Initialize Light/Material Defaults
+        mLightPos = vec3(50.0f, 150.0f, 150.0f); mLightColor = vec3(1.0f, 1.0f, 1.0f);
+        mMaterialAmbient = vec3(0.2f, 0.2f, 0.2f); mMaterialDiffuse = vec3(0.6f, 0.6f, 0.6f);
+        mMaterialSpecular = vec3(0.1f, 0.1f, 0.1f); mShininess = 8.0f;
 
         writeln("GraphicsApp Construction Complete.");
     }
@@ -123,56 +129,138 @@ struct GraphicsApp {
 
     /// Handle input.
     void Input() {
+
+        // Reset frame-specific input state
+        moveForward = 0.0f;
+        moveRight = 0.0f;
+        moveUp = 0.0f;
+        mScrollDelta = 0.0f; // Reset scroll accumulator
+
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                writeln("Exit event triggered");
-                mGameIsRunning = false;
-            }
-            if (event.type == SDL_KEYDOWN) {
-                if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-                    writeln("Pressed escape key");
+            switch(event.type) {
+                case SDL_QUIT:
+                    writeln("Exit event triggered");
                     mGameIsRunning = false;
-                } else if (event.key.keysym.sym == SDLK_TAB) {
-                    mRenderWireframe = !mRenderWireframe;
-                    writeln("Wireframe Toggled: ", mRenderWireframe);
-                }
-                // --- TESSELLATION TOGGLE ---
-                else if (event.key.keysym.sym == SDLK_t) {
-                     mUseTessellation = !mUseTessellation; // Flip the flag
-                     writeln("Switching Render Mode -> Use Tessellation: ", mUseTessellation);
-                     if (mTerrainNode !is null) { // Check node reference is valid
-                          // Swap the Surface and Material used by the terrain node
-                          // Requires SetSurface/SetMaterial on MeshNode class!
-                          if (mUseTessellation) {
-                              writeln("  Setting LoRes Patch Surface and Tessellation Material");
-                              mTerrainNode.SetSurface(mTerrainSurfaceLoRes);
-                              mTerrainNode.SetMaterial(mTerrainMaterialTess);
-                          } else {
-                              writeln("  Setting HiRes Triangle Surface and Standard Material");
-                              mTerrainNode.SetSurface(mTerrainSurfaceHiRes);
-                              mTerrainNode.SetMaterial(mTerrainMaterialHiRes);
-                          }
-                     } else {
-                          writeln("  Error: Terrain node reference is null during toggle!");
-                     }
-                }
-                // --- Camera Movement ---
-                else if (event.key.keysym.sym == SDLK_DOWN) { mCamera.MoveBackward(); }
-                else if (event.key.keysym.sym == SDLK_UP)    { mCamera.MoveForward(); }
-                else if (event.key.keysym.sym == SDLK_LEFT)  { mCamera.MoveLeft(); }
-                else if (event.key.keysym.sym == SDLK_RIGHT) { mCamera.MoveRight(); }
-                else if (event.key.keysym.sym == SDLK_a)     { mCamera.MoveUp(); }
-                else if (event.key.keysym.sym == SDLK_z)     { mCamera.MoveDown(); }
+                    break;
 
-                // Optional: Log camera position sometimes
-                // writeln("Camera Position: ", mCamera.mEyePosition);
-            }
-        }
-        int mouseX, mouseY;
-        SDL_GetMouseState(&mouseX, &mouseY); // Get mouse state for looking
-        mCamera.MouseLook(mouseX, mouseY); // Update camera orientation
-    }
+                case SDL_KEYDOWN:
+                    if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) { mGameIsRunning = false; writeln("Pressed escape key"); }
+                    else if (event.key.keysym.sym == SDLK_TAB) { mRenderWireframe = !mRenderWireframe; writeln("Wireframe Toggled: ", mRenderWireframe); }
+                    // --- TESSELLATION TOGGLE ---
+                    else if (event.key.keysym.sym == SDLK_t) {
+                         mUseTessellation = !mUseTessellation;
+                         writeln("Switching Render Mode -> Use Tessellation: ", mUseTessellation);
+                         if (mTerrainNode !is null) {
+                              if (mUseTessellation) {
+                                  writeln("  Setting LoRes Patch Surface and Tessellation Material");
+                                  mTerrainNode.SetSurface(mTerrainSurfaceLoRes);
+                                  mTerrainNode.SetMaterial(mTerrainMaterialTess);
+                              } else {
+                                  writeln("  Setting HiRes Triangle Surface and Standard Material");
+                                  mTerrainNode.SetSurface(mTerrainSurfaceHiRes);
+                                  mTerrainNode.SetMaterial(mTerrainMaterialHiRes);
+                              }
+                         } else { writeln("  Error: Terrain node null!"); }
+                    }
+                    // --- Set Movement Request Flags ---
+                    else if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w)    { moveForward = 1.0f; }
+                    else if (event.key.keysym.sym == SDLK_DOWN || event.key.keysym.sym == SDLK_s)  { moveForward = -1.0f; }
+                    else if (event.key.keysym.sym == SDLK_LEFT || event.key.keysym.sym == SDLK_a)  { moveRight = -1.0f; }
+                    else if (event.key.keysym.sym == SDLK_RIGHT || event.key.keysym.sym == SDLK_d) { moveRight = 1.0f; }
+                    else if (event.key.keysym.sym == SDLK_q)     { moveUp = 1.0f; }
+                    else if (event.key.keysym.sym == SDLK_z)     { moveUp = -1.0f; }
+                    break; // End SDL_KEYDOWN
+
+                case SDL_KEYUP:
+                     // Optional: Stop movement when key is released
+                     // if (event.key.keysym.sym == SDLK_UP && moveForward > 0) { moveForward = 0.0f; }
+                     // else if (event.key.keysym.sym == SDLK_DOWN && moveForward < 0) { moveForward = 0.0f; }
+                     // ... etc for other keys ...
+                     break;
+
+                // --- MOUSE WHEEL for ZOOM ---
+                case SDL_MOUSEWHEEL:
+                    if (event.wheel.y != 0) {
+                         // Call Camera::Zoom directly with the scroll value.
+                         // Positive y scrolls away (zoom out), Negative y scrolls toward (zoom in).
+                         // Pass negative value to make scroll "up/away" zoom out.
+                         // Sensitivity is handled inside Camera::Zoom.
+                         mCamera.Zoom( -event.wheel.y ); // <<< CALL CAMERA ZOOM
+                         // writeln("Zoom Event: y=", event.wheel.y); // Debug log
+                    }
+                    break;
+
+                 // --- MOUSE BUTTON for PANNING ---
+                case SDL_MOUSEBUTTONDOWN:
+                    // Start panning if middle button is pressed AND not already panning
+                    if (event.button.button == SDL_BUTTON_MIDDLE && !mIsPanning) {
+                        mIsPanning = true;
+                        // Store the mouse position where panning *started*
+                        SDL_GetMouseState(&mLastPanX, &mLastPanY);
+                        // Optional: Hide cursor and use relative mode for better panning feel
+                        SDL_SetRelativeMouseMode(SDL_TRUE); // Grab mouse
+                        SDL_ShowCursor(SDL_FALSE);          // Hide cursor
+                        writeln("Panning Started");
+                    }
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                     // Stop panning if middle button is released AND we were panning
+                     if (event.button.button == SDL_BUTTON_MIDDLE && mIsPanning) {
+                        mIsPanning = false;
+                        // Optional: Restore cursor and input mode
+                        SDL_SetRelativeMouseMode(SDL_FALSE); // Release mouse
+                        SDL_ShowCursor(SDL_TRUE);           // Show cursor
+                        writeln("Panning Stopped");
+                    }
+                    break;
+
+                // --- MOUSE MOTION --- Handles Look OR Pan
+                case SDL_MOUSEMOTION:
+                    // Get current absolute position (needed for non-relative mode look)
+                    int currentMouseX = event.motion.x;
+                    int currentMouseY = event.motion.y;
+
+                    if (mIsPanning) {
+                         // If panning, use the RELATIVE motion provided by the event
+                         // This works correctly even if the cursor is hidden/grabbed
+                         int panDeltaX = event.motion.xrel;
+                         int panDeltaY = event.motion.yrel; // Relative Y might have different sign convention? Test needed. Usually positive=down.
+
+                         // Call Camera::Pan if there was movement
+                         if (panDeltaX != 0 || panDeltaY != 0) {
+                             // Pass raw relative deltas; sensitivity handled inside Camera::Pan
+                             // Ensure Camera::Pan uses dy correctly (e.g., adds to Up vector if dy>0)
+                             mCamera.Pan(cast(float)panDeltaX, cast(float)panDeltaY); // <<< CALL CAMERA PAN
+                             // writeln("Pan Motion Rel: dx=", panDeltaX, " dy=", panDeltaY); // Debug
+                         }
+                         // No need to update mLastPanX/Y when using relative motion
+                    } else {
+                        // If not panning, perform standard mouse look using absolute position
+                        mCamera.MouseLook(currentMouseX, currentMouseY);
+                    }
+                    break;
+
+                // --- WINDOW RESIZE ---
+                case SDL_WINDOWEVENT:
+                    if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                         int newWidth = event.window.data1;
+                         int newHeight = event.window.data2;
+                         writeln("Window resized to: ", newWidth, "x", newHeight);
+                         glViewport(0, 0, newWidth, newHeight); // Update viewport
+                         if (newHeight > 0) {
+                              float newAspect = cast(float)newWidth / newHeight;
+                              // Call camera method to update projection
+                              mCamera.UpdateProjectionMatrix(newAspect); // <<< CALL CAMERA UPDATE
+                         }
+                    }
+                    break; // End SDL_WINDOWEVENT
+
+                default: break;
+            } // End switch event.type
+        } // End while poll events
+    } // End Input
 
     /// Setup the scene - Creates pipelines, surfaces, materials, nodes.
     void SetupScene() {
@@ -331,13 +419,32 @@ struct GraphicsApp {
 
     /// Update game state.
     void Update() {
-        // Update camera view matrix (needed for uView uniform, potentially uViewPos)
-        mCamera.UpdateViewMatrix(); // Make sure this updates the matrix pointed to by the uniform
 
-        // Optional: Animate light source?
-        // static float lightAngle = 0.0f; lightAngle += 0.005f;
-        // mLightPos.x = 150.0f * cos(lightAngle);
-        // mLightPos.z = 150.0f * sin(lightAngle);
+        // --- Calculate TARGET Movement Direction based on Input ---
+        vec3 targetMovementDirection = vec3(0.0f);
+        if (moveForward > 0.5f)  targetMovementDirection = targetMovementDirection + mCamera.mForwardVector;
+        if (moveForward < -0.5f) targetMovementDirection = targetMovementDirection - mCamera.mForwardVector;
+        if (moveRight > 0.5f)    targetMovementDirection = targetMovementDirection + mCamera.mRightVector;
+        if (moveRight < -0.5f)   targetMovementDirection = targetMovementDirection - mCamera.mRightVector;
+        if (moveUp > 0.5f)       targetMovementDirection = targetMovementDirection + WORLD_UP;
+        if (moveUp < -0.5f)      targetMovementDirection = targetMovementDirection - WORLD_UP;
+
+        // --- Calculate TARGET Velocity (Direction * Speed) ---
+        vec3 targetVelocity = vec3(0.0f);
+        if (Dot(targetMovementDirection, targetMovementDirection) > (0.001f * 0.001f)) {
+            // Just direction scaled by speed, NO delta time here
+            targetVelocity = targetMovementDirection.Normalize() * mCamera.mMovementSpeed;
+        }
+        // If no keys are pressed, targetVelocity remains zero, causing deceleration.
+
+        // --- Update Camera Movement (Smoothing happens inside) ---
+        mCamera.UpdateMovement(targetVelocity, mDeltaTime); // <<< CALL NEW METHOD
+
+        // --- Apply Smooth Zoom ---
+        mCamera.ApplySmoothZoom(mDeltaTime); // <<< Keep this call
+
+        // --- Update Camera View Matrix ---
+        mCamera.UpdateViewMatrix(); // AFTER all position/orientation updates
     }
 
     /// Render the scene.
