@@ -1,45 +1,69 @@
 #version 410 core
-layout(quads, fractional_even_spacing, ccw) in;
+layout(quads, fractional_odd_spacing, ccw) in;
 
-// Inputs from TCS
+// inputs from TCS
 in vec3 tePosition[];
 in vec2 teTexCoord[];
 
-// Uniforms (All needed now)
+// uniforms
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
+
 uniform sampler2D uHeightMap;
-uniform float uYScale; // Should be ~250.0
-uniform float uYShift; // Should be ~-40.0
+uniform float     uYScale;   // ≈250
+uniform float     uYShift;   // ≈-40
 
-// Output to Fragment Shader
-out vec3  vWorldPos;    // world‐space position of this fragment
-out vec2  vTexCoord;     // UV for texture lookups
+// outputs to FS
+out vec3 vWorldPos;
+out vec3 vNormal;     // NEW – smooth normal
+out vec2 vTexCoord;
 
-// Interpolation helpers...
-vec2 interpolateV2(vec2 v0, vec2 v1, vec2 v2, vec2 v3) {
-    vec2 p0=mix(v0, v3, gl_TessCoord.x); vec2 p1=mix(v1, v2, gl_TessCoord.x); return mix(p0, p1, gl_TessCoord.y);
+// helper: bilinear quad interpolation
+vec2 interp2(vec2 v0, vec2 v1, vec2 v2, vec2 v3)
+{
+    vec2 a = mix(v0, v3, gl_TessCoord.x);
+    vec2 b = mix(v1, v2, gl_TessCoord.x);
+    return mix(a, b, gl_TessCoord.y);
 }
-vec3 interpolateV3(vec3 v0, vec3 v1, vec3 v2, vec3 v3) {
-    vec3 p0=mix(v0, v3, gl_TessCoord.x); vec3 p1=mix(v1, v2, gl_TessCoord.x); return mix(p0, p1, gl_TessCoord.y);
+vec3 interp3(vec3 v0, vec3 v1, vec3 v2, vec3 v3)
+{
+    vec3 a = mix(v0, v3, gl_TessCoord.x);
+    vec3 b = mix(v1, v2, gl_TessCoord.x);
+    return mix(a, b, gl_TessCoord.y);
 }
 
-void main() {
-    // 1. interpolate basePos & UV
-    vec2 texCoord = interpolateV2(teTexCoord[0], teTexCoord[1], teTexCoord[2], teTexCoord[3]);
-    vec3 basePos  = interpolateV3(tePosition[0], tePosition[1], tePosition[2], tePosition[3]);
+void main()
+{
+    // ── 1. interpolate base pos & UV on flat patch ──
+    vec2 texCoord = interp2(teTexCoord[0], teTexCoord[1],
+                            teTexCoord[2], teTexCoord[3]);
 
-    // 2. sample height & build displaced pos
-    float heightSample = texture(uHeightMap, texCoord).r;
-    float worldY       = heightSample * uYScale + uYShift;
-    vec3 worldPos      = vec3(basePos.x, worldY, basePos.z);
+    vec3 basePos  = interp3(tePosition[0], tePosition[1],
+                            tePosition[2], tePosition[3]);
 
-    // 3. feed the FS
-    vWorldPos  = worldPos;
-    vTexCoord  = texCoord;
-    // vNormalizedHeight = clamp((worldY - uYShift) / uYScale, 0.0, 1.0);
+    // ── 2. height displacement ────────────────────────
+    // use textureLod with 0.5 mip-bias to reduce far sparkle
+    float h  = textureLod(uHeightMap, texCoord, 0.5).r;
+    float y  = h * uYScale + uYShift;
+    vec3 worldPos = vec3(basePos.x, y, basePos.z);
 
-    // 4. emit
+    // ── 3. geometric normal via finite differences ────
+    float texel = 1.0 / textureSize(uHeightMap, 0).x;   // assumes square texels
+    float hL = textureLod(uHeightMap, texCoord + vec2(-texel, 0.0), 0.5).r * uYScale;
+    float hR = textureLod(uHeightMap, texCoord + vec2( texel, 0.0), 0.5).r * uYScale;
+    float hD = textureLod(uHeightMap, texCoord + vec2(0.0, -texel), 0.5).r * uYScale;
+    float hU = textureLod(uHeightMap, texCoord + vec2(0.0,  texel), 0.5).r * uYScale;
+
+    // tangent vectors in world space
+    vec3 dx = vec3(2.0 * texel, hR - hL, 0.0);
+    vec3 dz = vec3(0.0,          hU - hD, 2.0 * texel);
+    vec3 n  = normalize(cross(dz, dx));   // y-up world
+
+    // ── 4. hand off to fragment shader ────────────────
+    vWorldPos = worldPos;
+    vNormal   = n;
+    vTexCoord = texCoord;
+
     gl_Position = uProjection * uView * uModel * vec4(worldPos, 1.0);
 }
