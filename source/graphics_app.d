@@ -283,6 +283,12 @@ struct GraphicsApp {
             if (mHeightMapTexture is null || mHeightMapTexture.mTextureID == 0) {
                  throw new Exception("Heightmap Texture object is null or has invalid ID.");
             }
+
+            glBindTexture(GL_TEXTURE_2D, mHeightMapTexture.mTextureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glGenerateMipmap(GL_TEXTURE_2D);
+            
         } catch (Exception e) {
             stderr.writeln("CRITICAL: Failed to load shared heightmap texture."); stderr.writeln(e.msg);
             mGameIsRunning = false; return;
@@ -297,7 +303,7 @@ struct GraphicsApp {
             mTerrainSurfaceHiRes = new SurfaceTerrain(heightmapPath, false); // generatePatches = false
 
             // Low-Res Quad Patches for tessellation pipeline
-            uint patchResolution = 64; // Adjust as needed (e.g., 32, 64, 128)
+            uint patchResolution = 128; // Adjust as needed (e.g., 32, 64, 128)
             mTerrainSurfaceLoRes = new SurfaceTerrain(heightmapPath, true, patchResolution); // generatePatches = true
 
             // Get scale/shift values (use HiRes surface as it calculates them during generation)

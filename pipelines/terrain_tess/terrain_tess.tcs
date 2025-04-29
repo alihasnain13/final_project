@@ -3,14 +3,15 @@
 // Define output patch size
 layout (vertices = 4) out;
 
-// Input from Vertex Shader (Control Points)
-// Order: 0=TL, 1=BL, 2=BR, 3=TR
+// order: 0=TL, 1=BL, 2=BR, 3=TR
 in vec3 tcPosition[];
+in vec3 tcNormal[];
 in vec2 tcTexCoord[];
 
-// Output to Tessellation Evaluation Shader (TES)
-out vec3 tePosition[]; // Pass world position through
-out vec2 teTexCoord[]; // Pass texcoord through
+// output to tes
+out vec3 tePosition[];
+out vec3 teNormal[];
+out vec2 teTexCoord[]; 
 
 // --- Uniforms needed for LOD calculation ---
 uniform mat4 uModel; // Model matrix of the terrain
@@ -28,6 +29,7 @@ void main()
     // --- Pass control point attributes through to the TES ---
     // (This happens for all invocations 0-3)
     tePosition[gl_InvocationID] = tcPosition[gl_InvocationID];
+    teNormal[gl_InvocationID] = tcNormal[gl_InvocationID];
     teTexCoord[gl_InvocationID] = tcTexCoord[gl_InvocationID];
 
     // --- Calculate and set Tessellation Levels (Invocation 0 only) ---

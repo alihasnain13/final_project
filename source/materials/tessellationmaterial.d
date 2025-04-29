@@ -96,8 +96,8 @@ class TessellationMaterial : IMaterial {
 
         if (mHeightMapTexture !is null && mHeightMapTexture.mTextureID != 0) {
             // Use NEAREST neighbor (point sampling), disables mipmaps implicitly for min filter
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             // writeln("DEBUG: Set heightmap filtering to NEAREST"); // Optional log
         }
 
