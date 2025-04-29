@@ -14,11 +14,11 @@ uniform sampler2D sampler4; // Snow
 // --- Lighting Uniforms ---
 uniform vec3 uLightPos;
 uniform vec3 uLightColor;
-uniform vec3 uViewPos;          // *** NEEDED for Specular ***
+uniform vec3 uViewPos;         
 uniform vec3 uMaterialAmbient;
 uniform vec3 uMaterialDiffuse;
-uniform vec3 uMaterialSpecular; // *** NEEDED for Specular ***
-uniform float uShininess;       // *** NEEDED for Specular ***
+uniform vec3 uMaterialSpecular;
+uniform float uShininess;      
 
 // Output color
 out vec4 fragColor;

@@ -47,6 +47,16 @@ class SurfaceTerrain : ISurface {
     enum float WORLD_MAX_HEIGHT = 210.0f;
     enum float WORLD_MIN_HEIGHT = -40.0f;
 
+    uint  getHeightmapWidth()  { return mGridWidth;  }
+    uint  getHeightmapHeight() { return mGridHeight; }
+
+    /* world-space extents after TERRAIN_X/Z_SCALE have been applied */
+    vec2  getWorldSize() const
+    {
+        return vec2( cast(float)mGridWidth  * TERRAIN_X_SCALE,
+                    cast(float)mGridHeight * TERRAIN_Z_SCALE );
+    }
+
     /// Constructor: Chooses generation method based on flag.
     /// Params:
     ///   heightmap_file = Path to the heightmap image (PNG, L8 expected).

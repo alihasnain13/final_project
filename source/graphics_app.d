@@ -266,7 +266,7 @@ struct GraphicsApp {
     void SetupScene() {
         writeln("--- Setting up scene ---");
         // --- Shared Paths ---
-        string heightmapPath = "./assets/custommap.png"; // ENSURE THIS IS CORRECT
+        string heightmapPath = "./assets/china_heightmap.png"; // ENSURE THIS IS CORRECT
         string texDirt = "./assets/dirt.ppm";
         string texGrass = "./assets/grass.ppm";
         string texRock = "./assets/rock.ppm";

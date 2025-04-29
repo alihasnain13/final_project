@@ -16,7 +16,7 @@ uniform mat4 uView;
 
 // LOD parameters
 const int   MIN_TESS_LEVEL = 2;
-const int   MAX_TESS_LEVEL = 32;
+const int   MAX_TESS_LEVEL = 128;
 const float MIN_DISTANCE   = 150.0;
 const float MAX_DISTANCE   = 600.0;
 
