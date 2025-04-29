@@ -1,5 +1,5 @@
 #version 410 core
-layout(quads, equal_spacing, ccw) in;
+layout(quads, fractional_even_spacing, ccw) in;
 
 // Inputs from TCS
 in vec3 tePosition[];

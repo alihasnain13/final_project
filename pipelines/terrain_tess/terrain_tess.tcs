@@ -21,8 +21,8 @@ uniform mat4 uView;  // Camera's view matrix
 // Adjust these values based on your camera setup and desired detail falloff
 const int   MIN_TESS_LEVEL = 2;     // Min subdivision level for distant patches (must be >= 1)
 const int   MAX_TESS_LEVEL = 64;    // Max subdivision level for close patches (e.g., 16, 32, 64)
-const float MIN_DISTANCE   = 100.0;  // Distance at which MAX_TESS_LEVEL is applied
-const float MAX_DISTANCE   = 400.0; // Distance at which MIN_TESS_LEVEL is applied
+const float MIN_DISTANCE   = 200.0;  // Distance at which MAX_TESS_LEVEL is applied
+const float MAX_DISTANCE   = 500.0; // Distance at which MIN_TESS_LEVEL is applied
 
 void main()
 {
@@ -35,40 +35,44 @@ void main()
     // --- Calculate and set Tessellation Levels (Invocation 0 only) ---
     if (gl_InvocationID == 0)
     {
-        // 1. Transform patch corner positions to eye space (view space)
-        // We use tcPosition which holds the world space position from VS
-        vec4 eyeSpacePos0 = uView * uModel * vec4(tcPosition[0], 1.0); // TL
-        vec4 eyeSpacePos1 = uView * uModel * vec4(tcPosition[1], 1.0); // BL
-        vec4 eyeSpacePos2 = uView * uModel * vec4(tcPosition[2], 1.0); // BR
-        vec4 eyeSpacePos3 = uView * uModel * vec4(tcPosition[3], 1.0); // TR
+        // --- 1. compute eye-space midpoint distances for each edge ---
+        vec3 pTL = tcPosition[0];
+        vec3 pBL = tcPosition[1];
+        vec3 pBR = tcPosition[2];
+        vec3 pTR = tcPosition[3];
 
-        // 2. Calculate distance from camera (absolute Z value in eye space)
-        float dist0 = abs(eyeSpacePos0.z);
-        float dist1 = abs(eyeSpacePos1.z);
-        float dist2 = abs(eyeSpacePos2.z);
-        float dist3 = abs(eyeSpacePos3.z);
+        // midpoints on the world grid
+        vec3 midBottom = (pBL + pBR) * 0.5;
+        vec3 midLeft   = (pTL + pBL) * 0.5;
+        vec3 midTop    = (pTR + pTL) * 0.5;
+        vec3 midRight  = (pBR + pTR) * 0.5;
 
-        // 3. Normalize distances to 0.0-1.0 range based on MIN/MAX distance constants
-         float smoothDist0 = smoothstep(MIN_DISTANCE, MAX_DISTANCE, dist0);
-        float smoothDist1 = smoothstep(MIN_DISTANCE, MAX_DISTANCE, dist1);
-        float smoothDist2 = smoothstep(MIN_DISTANCE, MAX_DISTANCE, dist2);
-        float smoothDist3 = smoothstep(MIN_DISTANCE, MAX_DISTANCE, dist3);
-        // --- *** END CHANGE *** ---
+        // transform to eye‐space Z
+        float dB = abs((uView * uModel * vec4(midBottom,1)).z);
+        float dL = abs((uView * uModel * vec4(midLeft,  1)).z);
+        float dT = abs((uView * uModel * vec4(midTop,   1)).z);
+        float dR = abs((uView * uModel * vec4(midRight, 1)).z);
 
-        // 4. Interpolate Tessellation Level using MIN of SMOOTH distances
-        float tessLevelBottom = mix( float(MAX_TESS_LEVEL), float(MIN_TESS_LEVEL), min(smoothDist1, smoothDist2) ); // Edge BL-BR
-        float tessLevelLeft   = mix( float(MAX_TESS_LEVEL), float(MIN_TESS_LEVEL), min(smoothDist0, smoothDist1) ); // Edge TL-BL
-        float tessLevelTop    = mix( float(MAX_TESS_LEVEL), float(MIN_TESS_LEVEL), min(smoothDist3, smoothDist0) ); // Edge TR-TL
-        float tessLevelRight  = mix( float(MAX_TESS_LEVEL), float(MIN_TESS_LEVEL), min(smoothDist2, smoothDist3) ); // Edge BR-TR
+        // normalize into 0..1
+        float sB = smoothstep(MIN_DISTANCE, MAX_DISTANCE, dB);
+        float sL = smoothstep(MIN_DISTANCE, MAX_DISTANCE, dL);
+        float sT = smoothstep(MIN_DISTANCE, MAX_DISTANCE, dT);
+        float sR = smoothstep(MIN_DISTANCE, MAX_DISTANCE, dR);
 
-        // 5. Set Outer Tessellation Levels
-        gl_TessLevelOuter[0] = tessLevelBottom;
-        gl_TessLevelOuter[1] = tessLevelLeft;
-        gl_TessLevelOuter[2] = tessLevelTop;
-        gl_TessLevelOuter[3] = tessLevelRight;
+        // --- 2. mix MAX/MIN by that midpoint factor ---
+        float tB = mix(float(MAX_TESS_LEVEL), float(MIN_TESS_LEVEL), sB);
+        float tL = mix(float(MAX_TESS_LEVEL), float(MIN_TESS_LEVEL), sL);
+        float tT = mix(float(MAX_TESS_LEVEL), float(MIN_TESS_LEVEL), sT);
+        float tR = mix(float(MAX_TESS_LEVEL), float(MIN_TESS_LEVEL), sR);
 
-        // 6. Set Inner Tessellation Levels (typically max of parallel outer edges)
-        gl_TessLevelInner[0] = max(tessLevelLeft, tessLevelRight); // U direction (related to Left/Right edges)
-        gl_TessLevelInner[1] = max(tessLevelTop, tessLevelBottom); // V direction (related to Top/Bottom edges)
+        // --- 3. assign to outer and inner levels ---
+        gl_TessLevelOuter[0] = tB;      // bottom edge
+        gl_TessLevelOuter[1] = tL;      // left edge
+        gl_TessLevelOuter[2] = tT;      // top edge
+        gl_TessLevelOuter[3] = tR;      // right edge
+
+        // inner = max of opposite edges
+        gl_TessLevelInner[0] = max(tL, tR);  // U direction
+        gl_TessLevelInner[1] = max(tT, tB);  // V direction
     }
 }
