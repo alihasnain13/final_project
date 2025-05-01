@@ -11,9 +11,7 @@ struct PPM {
     int mRange = 255; // Default range
     ubyte[] mPixels;
 
-    // Simple PPM image loader (P3 Format - Plain Text RGB)
-    // Returns: Pixel data array. Width/Height/Range are stored in member variables.
-    // Throws: Exception on file error or parsing error.
+
     ubyte[] LoadPPMImage(string filename) {
         writeln("Attempting to load PPM: ", filename);
         if (!filename.exists) {
@@ -49,7 +47,7 @@ struct PPM {
                     if (dims.length < 2) {
                         throw new Exception("Invalid dimensions line: " ~ line);
                     }
-                    // *** FIX: Use dims array, not line index ***
+
                     mWidth = dims[0].to!int;
                     mHeight = dims[1].to!int;
                     if (mWidth <= 0 || mHeight <= 0) {
@@ -63,11 +61,11 @@ struct PPM {
                          throw new Exception("Invalid or unsupported PPM color range (expected 1-255): " ~ mRange.to!string);
                      }
                     writeln("  PPM Max Range: ", mRange);
-                    // Reserve pixel buffer size (RGB = 3 bytes per pixel)
+
                     mPixels.reserve(mWidth * mHeight * 3);
                     headerStage = 3;
                 } else if (headerStage == 3) { // Expect Pixel Data
-                    // Handle pixel values, potentially split across multiple lines
+
                     string[] tokens = line.split; // Split by whitespace
                     foreach (token; tokens) {
                         if (token.length > 0) { // Ensure token is not empty
@@ -80,7 +78,7 @@ struct PPM {
             } catch (Exception e) { // Catch other potential errors like index out of bounds
                  throw new Exception("PPM parsing error on line " ~ lineNum.to!string ~ ": " ~ e.msg);
             }
-        } // end foreach line
+        } 
 
         // Final checks
         if (headerStage < 3) {
@@ -91,7 +89,7 @@ struct PPM {
         }
 
         writeln("PPM loaded successfully: ", filename);
-        // Note: No flipping or swizzling applied here. Assumes data is RGBRGB... top-to-bottom.
+
         return mPixels;
     }
 }

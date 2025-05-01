@@ -62,15 +62,12 @@ void main()
     float diffFactor = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = diffFactor * uLightColor * uMaterialDiffuse;
 
-    // *** Specular Calculation Added ***
     vec3 reflectDir = reflect(-lightDir, normal); // Calculate the light's reflection direction
     // Calculate the alignment between the view direction and the reflection direction
     // Raise to the power of shininess: higher shininess = smaller/sharper highlight
     float specFactor = pow(max(dot(viewDir, reflectDir), 0.0), uShininess);
     // Final specular color component
     vec3 specular = specFactor * uLightColor * uMaterialSpecular;
-    // Note: For terrain, uMaterialSpecular is usually low (e.g., vec3(0.1, 0.1, 0.1))
-    // and uShininess is also low (e.g., 4.0 or 8.0) to avoid a "plastic" look.
 
     // --- 3. Combine Lighting and Texture ---
     // Add the specular highlights on top of the ambient/diffuse lit texture

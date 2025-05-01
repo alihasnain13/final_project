@@ -35,8 +35,7 @@ class SurfaceTerrain : ISurface {
     GLenum mDrawMode = GL_TRIANGLES; // Primitive type to use for drawing
     int mPatchVertices = 0;      // Vertices per patch for GL_PATCHES (e.g., 4 for Quads)
 
-    // Scale/Shift values used for height displacement (calculated from heightmap)
-    // These are needed as uniforms for the Tessellation Evaluation Shader.
+    // these are needed as uniforms for the Tessellation Evaluation Shader.
     float mYScale = 1.0f;
     float mYShift = 0.0f;
 
@@ -57,18 +56,12 @@ class SurfaceTerrain : ISurface {
                     cast(float)mGridHeight * TERRAIN_Z_SCALE );
     }
 
-    /// Constructor: Chooses generation method based on flag.
-    /// Params:
-    ///   heightmap_file = Path to the heightmap image (PNG, L8 expected).
-    ///   generatePatches = If true, generates low-res quad grid for tessellation.
-    ///                     If false (default), generates high-res triangle mesh.
-    ///   patchRez = Number of patches wide/deep for low-res grid (e.g., 64).
+    
     this(string heightmap_file, bool generatePatches = false, uint patchRez = 64) {
-        // Load heightmap ONCE to calculate scale/shift factors needed by both paths
-        // and potentially needed by the TES shader later via getters.
+        // load heightmap ONCE to calculate scale/shift factors needed by both paths
         Image heightmapImage;
         try {
-            heightmapImage = loadHeightmap(heightmap_file, PixelType.l8); // L8 is assumed
+            heightmapImage = loadHeightmap(heightmap_file, PixelType.l8); // L8 is assumed / confirmed in image.d and  png_loader.d
         } catch (Exception e) {
             throw new Exception("SurfaceTerrain: Failed to load heightmap '"~heightmap_file~"' to calculate scale/shift: "~e.msg);
         }
@@ -82,14 +75,14 @@ class SurfaceTerrain : ISurface {
 
         // Generate the appropriate geometry
         if (generatePatches) {
-            // *** Calculate ACTUAL target world size based on heightmap and scale ***
+            // calculating world size to keep in scale
             float targetWorldSizeX = imgWidth * TERRAIN_X_SCALE;
             float targetWorldSizeZ = imgHeight * TERRAIN_Z_SCALE;
 
             // Generate low-res grid covering the calculated world size
             MakeTerrainPatchQuadGrid(patchRez, patchRez, targetWorldSizeX, targetWorldSizeZ);
             this.mDrawMode = GL_PATCHES;
-            this.mPatchVertices = 4; // Using Quads
+            this.mPatchVertices = 4; // using quads for tessellation
         } else {
             // Generate high-res mesh using the loaded image
             MakeTerrainHiRes(heightmapImage, heightmap_file); // Pass already loaded image
@@ -98,12 +91,9 @@ class SurfaceTerrain : ISurface {
         }
     }
 
-    /// Getter for Y-Scale factor (needed for TessellationMaterial)
     float getYScale() { return mYScale; }
-    /// Getter for Y-Shift factor (needed for TessellationMaterial)
     float getYShift() { return mYShift; }
 
-    /// Destructor: Cleans up OpenGL buffer objects.
     ~this() {
         if (mVAO != 0) { writeln("Destroying SurfaceTerrain VAO: ", mVAO); glDeleteVertexArrays(1, &mVAO); }
         if (mVBO != 0) { writeln("Destroying SurfaceTerrain VBO: ", mVBO); glDeleteBuffers(1, &mVBO); }
@@ -113,20 +103,16 @@ class SurfaceTerrain : ISurface {
 
     /// Renders the geometry using the mode set during construction.
     override void Render() {
-        if (mVAO == 0) return; // Don't render if setup failed
+        if (mVAO == 0) return; // don't render if setup failed
         glBindVertexArray(mVAO);
-        // Use the draw mode determined during construction (GL_TRIANGLES or GL_PATCHES)
         glDrawElements(mDrawMode, cast(GLsizei)mIndices.length, GL_UNSIGNED_INT, null);
-        // Consider unbinding VAO after drawing if your renderer requires it
-        // glBindVertexArray(0);
+        
     }
 
     // --- Private Helper Methods ---
 
     /// Calculates scale/shift based on heightmap range and world constants.
     private void CalculateScaleShift(ref const(Image) heightmapImage) {
-         // Assuming L8 input (0-255 range)
-         // For L16 input, change 255.0f to 65535.0f
          mYScale = (WORLD_MAX_HEIGHT - WORLD_MIN_HEIGHT) / 255.0f;
          mYShift = WORLD_MIN_HEIGHT;
          writeln("Terrain Scale/Shift Calculated: Scale=", mYScale, ", Shift=", mYShift);
@@ -134,7 +120,6 @@ class SurfaceTerrain : ISurface {
 
     /// Generates the high-resolution triangle mesh from the heightmap.
     private void MakeTerrainHiRes(ref const(Image) heightmapImage, string filenameForLog) {
-        // Image is already loaded and scale/shift calculated
         uint width = heightmapImage.width;
         uint height = heightmapImage.height;
         mGridWidth = width; mGridHeight = height; // Store hi-res grid dimensions
@@ -146,7 +131,6 @@ class SurfaceTerrain : ISurface {
         float yScale = mYScale;
         float yShift = mYShift;
 
-        // Vertex generation constants
         const float terrainXScale = TERRAIN_X_SCALE;
         const float terrainZScale = TERRAIN_Z_SCALE;
         float xOffset = -cast(float)width * terrainXScale / 2.0f;
@@ -157,7 +141,7 @@ class SurfaceTerrain : ISurface {
 
         // Generate Vertices (Position, Placeholder Normal, TexCoord)
         for (uint z = 0; z < height; z++) {
-            ubyte* rowPtr = cast(ubyte*)heightmapImage.scanptr(z); // Assumes L8
+            ubyte* rowPtr = cast(ubyte*)heightmapImage.scanptr(z); 
             for (uint x = 0; x < width; x++) {
                 ubyte rawY = rowPtr[x];
                 float vx = x * terrainXScale + xOffset;
@@ -175,9 +159,9 @@ class SurfaceTerrain : ISurface {
             for (uint x = 0; x < width - 1; x++) {
                 GLuint topLeft = z * width + x; GLuint topRight = topLeft + 1;
                 GLuint bottomLeft = (z + 1) * width + x; GLuint bottomRight = bottomLeft + 1;
-                // Tri 1: TL -> BL -> TR
+                // triangle 1: TL -> BL -> TR
                 mIndices ~= topLeft; mIndices ~= bottomLeft; mIndices ~= topRight;
-                // Tri 2: TR -> BL -> BR
+                // triangle 2: TR -> BL -> BR
                 mIndices ~= topRight; mIndices ~= bottomLeft; mIndices ~= bottomRight;
             }
         }
@@ -212,14 +196,10 @@ class SurfaceTerrain : ISurface {
                  float vx = x * (worldSizeX / patchesX) + xOffset;
                  float vy = 0.0f; // Flat grid, Y displacement happens in TES
                  float vz = z * (worldSizeZ / patchesZ) + zOffset;
-                 float tu = cast(float)x / patchesX; // Texcoord 0..1 across whole grid
-                 float tv = cast(float)z / patchesZ; // Texcoord 0..1 across whole grid
-                 // Use PNT format for consistency, N is ignored by simple tess VS
-                 mVertices ~= VertexFormat3F3F2F([vx, vy, vz],[0.0f, 1.0f, 0.0f],[tu, tv]);
+                 float tu = cast(float)x / patchesX;
+                 float tv = cast(float)z / patchesZ;
 
-                 // Log first/last vertex
-                 if (x == 0 && z == 0) { writeln("  DEBUG: First Patch Grid Vertex Pos: (", vx, ", ", vy, ", ", vz, ")"); }
-                 if (x == vertsX - 1 && z == vertsZ - 1) { writeln("  DEBUG: Last Patch Grid Vertex Pos: (", vx, ", ", vy, ", ", vz, ")"); }
+                 mVertices ~= VertexFormat3F3F2F([vx, vy, vz],[0.0f, 1.0f, 0.0f],[tu, tv]);
              }
         }
 
@@ -233,8 +213,6 @@ class SurfaceTerrain : ISurface {
                  GLuint bottomRight = bottomLeft + 1;
                  GLuint topRight = topLeft + 1;
 
-                 // Output quad vertices in order: TL, BL, BR, TR
-                 // This order MUST match the interpolation logic in the TES!
                  mIndices ~= topLeft;
                  mIndices ~= bottomLeft;
                  mIndices ~= bottomRight;
@@ -244,7 +222,7 @@ class SurfaceTerrain : ISurface {
         mTriangles = 0; // Not applicable for patches
         writeln("Generated ", mVertices.length, " patch vertices and ", mIndices.length, " patch indices.");
 
-        // Normals are NOT calculated for the flat patch grid
+        // normals are NOT calculated for the flat patch grid
 
         // Setup OpenGL buffers for this grid
         SetupOpenGLBuffers();
@@ -275,13 +253,11 @@ class SurfaceTerrain : ISurface {
          glBindBuffer(GL_ARRAY_BUFFER, mVBO);
          glBufferData(GL_ARRAY_BUFFER, mVertices.length * VertexFormat3F3F2F.sizeof, mVertices.ptr, GL_STATIC_DRAW);
 
-         // Setup attributes based on the vertex format
-         // Assumes VertexFormat3F3F2F means Pos(loc 0), Normal(loc 1), TexCoord(loc 2)
          SetVertexAttributes!VertexFormat3F3F2F();
 
-         glBindVertexArray(0); // Unbind VAO
-         glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
-         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Unbind IBO (safe after VAO unbind)
+         glBindVertexArray(0);
+         glBindBuffer(GL_ARRAY_BUFFER, 0);
+         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
          writeln("OpenGL buffers setup complete (VAO:", mVAO, ")");
     }
 
@@ -294,13 +270,13 @@ class SurfaceTerrain : ISurface {
         for (size_t i = 0; i < mIndices.length; i += 3) {
             GLuint i1 = mIndices[i]; GLuint i2 = mIndices[i+1]; GLuint i3 = mIndices[i+2];
             if (i1 >= mVertices.length || i2 >= mVertices.length || i3 >= mVertices.length) { continue; }
-            // Use helper or direct access for vec3 conversion
+
             vec3 v1 = vec3(mVertices[i1].aPosition[0], mVertices[i1].aPosition[1], mVertices[i1].aPosition[2]);
             vec3 v2 = vec3(mVertices[i2].aPosition[0], mVertices[i2].aPosition[1], mVertices[i2].aPosition[2]);
             vec3 v3 = vec3(mVertices[i3].aPosition[0], mVertices[i3].aPosition[1], mVertices[i3].aPosition[2]);
             vec3 edge1 = v2 - v1; vec3 edge2 = v3 - v1;
-            // Ensure Cross/Normalize exist and work correctly in linear.d
-            vec3 faceNormal = Cross(edge1, edge2); // Use Cross from linear
+
+            vec3 faceNormal = Cross(edge1, edge2); 
             mVertices[i1].aNormal[0] += faceNormal.x; mVertices[i1].aNormal[1] += faceNormal.y; mVertices[i1].aNormal[2] += faceNormal.z;
             mVertices[i2].aNormal[0] += faceNormal.x; mVertices[i2].aNormal[1] += faceNormal.y; mVertices[i2].aNormal[2] += faceNormal.z;
             mVertices[i3].aNormal[0] += faceNormal.x; mVertices[i3].aNormal[1] += faceNormal.y; mVertices[i3].aNormal[2] += faceNormal.z;

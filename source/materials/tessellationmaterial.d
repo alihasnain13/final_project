@@ -1,4 +1,3 @@
-/// Material definition for Tessellated Terrain rendering using VS+TCS+TES+FS pipeline
 module tessellationmaterial;
 
 // Project Dependencies
@@ -16,8 +15,6 @@ import std.conv : to; // For error message formatting
 /// Material designed for the tessellation pipeline.
 /// Manages 4 surface color textures and binds a separate heightmap texture.
 /// Sets sampler uniforms for all 5 textures in Update().
-/// Assumes uniforms like uYScale, uYShift, MVP, Lighting are added externally
-/// in graphics_app.d and handled by Uniform.Transfer().
 class TessellationMaterial : IMaterial {
     // Surface Color Textures
     Texture mTexture1; // Dirt
@@ -65,7 +62,6 @@ class TessellationMaterial : IMaterial {
          // Does not own mHeightMapTexture.
     }
 
-    /// Update method: Sets pipeline, binds textures, sets sampler uniforms.
     override void Update() {
         // 1. Activate the tessellation shader pipeline
         PipelineUse(mPipelineName);
@@ -80,8 +76,9 @@ class TessellationMaterial : IMaterial {
                 // Set sampler uniform to use the correct texture unit index
                 mUniformMap[uniformName].Set(cast(int)texUnit);
             } else {
-                 // This might happen if SetupScene doesn't add all expected uniforms
-                 // writeln("Warning: Sampler uniform '", uniformName, "' not found in material map for pipeline '", mPipelineName, "'");
+                // This shouldn't happen if the uniform was added in SetupScene
+                // but good to be defensive.
+                // writeln("Warning: Attempting to bind sampler '", uniformName, "' but it was not found in mUniformMap.");
             }
         }
 
@@ -92,20 +89,17 @@ class TessellationMaterial : IMaterial {
         bindSampler("sampler4",   3, mTexture4);
 
         // 3. Bind Heightmap Texture (Unit 4) and set sampler
-        bindSampler("uHeightMap", 4, mHeightMapTexture); // Assuming unit 4 is unused
+        bindSampler("uHeightMap", 4, mHeightMapTexture);
 
         if (mHeightMapTexture !is null && mHeightMapTexture.mTextureID != 0) {
             // Use NEAREST neighbor (point sampling), disables mipmaps implicitly for min filter
             // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            // writeln("DEBUG: Set heightmap filtering to NEAREST"); // Optional log
+            writeln("DEBUG: Set heightmap filtering to NEAREST"); 
         }
 
-        // Ensure unit 0 is active again afterwards (good practice)
         glActiveTexture(GL_TEXTURE0);
 
-        // NOTE: Setting other uniforms like uYScale, uYShift, MVP, Lighting
-        // is assumed to be handled by the Renderer calling Uniform.Transfer()
-        // on uniforms added with pointers in graphics_app.d.
+      
     }
 }
